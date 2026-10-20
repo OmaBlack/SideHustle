@@ -8,17 +8,20 @@ const DATABASE_URL = process.env.TEST_DATABASE_URL;
 const REDIS_URL = process.env.TEST_REDIS_URL;
 
 describe.skipIf(!DATABASE_URL || !REDIS_URL)('GET /v1/health', () => {
-  const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, APP_VERSION: '1.2.3' });
-  const conn = createDb(config.DATABASE_URL, { max: 2 });
-  const redis = new Redis(config.REDIS_URL);
+  // Built in beforeAll: a skipped describe still runs its body, and there is no database to point at then.
   let app: Awaited<ReturnType<typeof buildApp>>;
+  let conn: ReturnType<typeof createDb>;
+  let redis: Redis;
   beforeAll(async () => {
+    const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, APP_VERSION: '1.2.3' });
+    conn = createDb(config.DATABASE_URL, { max: 2 });
+    redis = new Redis(config.REDIS_URL);
     app = await buildApp({ config, db: conn.db, redis });
   });
   afterAll(async () => {
-    await app.close();
-    await conn.close();
-    redis.disconnect();
+    await app?.close();
+    await conn?.close();
+    redis?.disconnect();
   });
 
   it('reports ok with database and redis checks', async () => {
