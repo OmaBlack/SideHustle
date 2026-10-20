@@ -1,85 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { freedomNumber, gapByVendor, kitMetrics } from '../src/index.js';
 import { prototype, prototypeKits } from '../fixtures/prototype.js';
+import { GOLDEN_GOALS, GOLDEN_KITS, SHORT_KIT_NAMES } from '../fixtures/golden.js';
 import { N, products } from './helpers.js';
 
-// Section 4 golden table, computed from the prototype's own data.
-const GOLDEN = [
-  {
-    name: 'Skincare Reseller Kit',
-    price: 125_000,
-    cost: 131_000,
-    retail: 248_000,
-    profit: 123_000,
-    margin: 50,
-    units: 82,
-  },
-  {
-    name: 'Leather Gifting Kit',
-    price: 98_000,
-    cost: 104_000,
-    retail: 221_000,
-    profit: 123_000,
-    margin: 56,
-    units: 36,
-  },
-  {
-    name: 'Health Corner Kit',
-    price: 125_000,
-    cost: 133_800,
-    retail: 244_800,
-    profit: 119_800,
-    margin: 49,
-    units: 70,
-  },
-  {
-    name: 'Phone Accessories Starter',
-    price: 215_000,
-    cost: 228_000,
-    retail: 425_000,
-    profit: 210_000,
-    margin: 49,
-    units: 90,
-  },
-  {
-    name: 'Menswear Basics Kit',
-    price: 124_000,
-    cost: 130_800,
-    retail: 264_000,
-    profit: 140_000,
-    margin: 53,
-    units: 36,
-  },
-  {
-    name: 'Snack Box Kit',
-    price: 75_000,
-    cost: 79_000,
-    retail: 150_000,
-    profit: 75_000,
-    margin: 50,
-    units: 140,
-  },
-  {
-    name: 'Home Cleaning Kit',
-    price: 62_000,
-    cost: 64_800,
-    retail: 132_000,
-    profit: 70_000,
-    margin: 53,
-    units: 60,
-  },
-];
-
-// Section 8a: price gap per kit.
-const GAPS: Record<string, number> = {
-  'Skincare Reseller Kit': 6_000,
-  'Leather Gifting Kit': 6_000,
-  'Health Corner Kit': 8_800,
-  'Phone Accessories Starter': 13_000,
-  'Menswear Basics Kit': 6_800,
-  'Snack Box Kit': 4_000,
-  'Home Cleaning Kit': 2_800,
-};
+const GOLDEN = GOLDEN_KITS;
+const GAPS: Record<string, number> = Object.fromEntries(GOLDEN_KITS.map((g) => [g.name, g.gap]));
 
 const kitByName = (name: string) => {
   const i = prototype.kits.findIndex((k) => k.name === name);
@@ -139,21 +65,8 @@ describe('freedom number golden orderings', () => {
       available: m.available,
     };
   });
-  const short: Record<string, string> = {
-    home: 'Home Cleaning',
-    snack: 'Snack Box',
-    leather: 'Leather Gifting',
-    fashion: 'Menswear',
-    skin: 'Skincare',
-    pharm: 'Health Corner',
-    phone: 'Phone Accessories',
-  };
-  const cases: [number, string][] = [
-    [50_000, 'Home Cleaning 1, Snack Box 1, Leather Gifting 1, Menswear 1, Skincare 1'],
-    [100_000, 'Leather Gifting 1, Menswear 1, Skincare 1, Health Corner 1, Phone Accessories 1'],
-    [250_000, 'Menswear 2, Phone Accessories 2, Leather Gifting 3, Skincare 3, Health Corner 3'],
-    [500_000, 'Phone Accessories 3, Menswear 4, Leather Gifting 5, Skincare 5, Health Corner 5'],
-  ];
+  const short = SHORT_KIT_NAMES;
+  const cases = GOLDEN_GOALS;
   it.each(cases)('goal ₦%i', (goal, expected) => {
     const rows = freedomNumber(N(goal), candidates);
     expect(rows.map((r) => `${short[r.kitId]} ${r.kitsPerMonth}`).join(', ')).toBe(expected);

@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./fixtures/prototype-catalogue.json": "./fixtures/prototype-catalogue.json",
-    "./fixtures/prototype": "./fixtures/prototype.ts"
+    "./fixtures/prototype": "./fixtures/prototype.ts",
+    "./fixtures/golden": "./fixtures/golden.ts"
   },
   "scripts": {
     "test": "vitest run",
