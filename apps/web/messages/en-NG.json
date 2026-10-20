@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "title": "SideHustle",
+    "description": "Start a side business with verified wholesale vendors. See your profit before you pay."
+  },
+  "home": {
+    "title": "Start a business you can see the profit of",
+    "lead": "Buy a ready-made starter kit or build your own from verified vendors, and see your expected profit before you pay.",
+    "styleguide": "View the component styleguide"
+  },
+  "styleguide": {
+    "title": "Components",
+    "lead": "The first SideHustle components, rendered with the prototype's design tokens. Switch your device to dark mode to see the dark set.",
+    "buttons": "Buttons",
+    "primary": "Add to cart",
+    "gold": "Start a business",
+    "ghost": "Save for later",
+    "danger": "Remove",
+    "disabled": "Out of stock",
+    "chips": "Category chips",
+    "all": "All",
+    "beauty": "Beauty & Skincare",
+    "fashion": "Fashion & Leather",
+    "fields": "Form fields",
+    "businessName": "Business name",
+    "businessNameHint": "As your customers will see it",
+    "phone": "Phone number",
+    "phoneError": "Enter a Nigerian mobile number, like 0801 234 5678",
+    "state": "State",
+    "statePlaceholder": "Choose a state",
+    "stepper": "Quantity",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "moqCorrected": "The minimum order is {min}, so we changed your quantity to {min}.",
+    "minOrder": "Minimum order {min}",
+    "prices": "Prices",
+    "was": "was",
+    "margin": "{pct}% margin",
+    "estimate": "Resale prices and profit are estimates, not a guarantee of income."
+  }
+}
