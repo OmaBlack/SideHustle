@@ -11,7 +11,9 @@
     "/v1/health": {
       "get": {
         "summary": "Liveness and dependency check",
-        "tags": ["ops"],
+        "tags": [
+          "ops"
+        ],
         "responses": {
           "200": {
             "description": "Default Response",
@@ -22,7 +24,10 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["ok", "degraded"]
+                      "enum": [
+                        "ok",
+                        "degraded"
+                      ]
                     },
                     "version": {
                       "type": "string"
@@ -31,11 +36,18 @@
                       "type": "object",
                       "additionalProperties": {
                         "type": "string",
-                        "enum": ["ok", "fail"]
+                        "enum": [
+                          "ok",
+                          "fail"
+                        ]
                       }
                     }
                   },
-                  "required": ["status", "version", "checks"],
+                  "required": [
+                    "status",
+                    "version",
+                    "checks"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -50,7 +62,10 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["ok", "degraded"]
+                      "enum": [
+                        "ok",
+                        "degraded"
+                      ]
                     },
                     "version": {
                       "type": "string"
@@ -59,11 +74,18 @@
                       "type": "object",
                       "additionalProperties": {
                         "type": "string",
-                        "enum": ["ok", "fail"]
+                        "enum": [
+                          "ok",
+                          "fail"
+                        ]
                       }
                     }
                   },
-                  "required": ["status", "version", "checks"],
+                  "required": [
+                    "status",
+                    "version",
+                    "checks"
+                  ],
                   "additionalProperties": false
                 }
               }

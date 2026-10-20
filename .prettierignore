@@ -4,3 +4,4 @@ pnpm-lock.yaml
 coverage
 .next
 dist
+apps/api/openapi.json
