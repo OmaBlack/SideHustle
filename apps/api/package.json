@@ -1,0 +1,36 @@
+{
+  "name": "@sidehustle/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,worker -c blue,magenta \"pnpm:dev:server\" \"pnpm:dev:worker\"",
+    "dev:server": "tsx watch --env-file-if-exists=../../.env src/server.ts",
+    "dev:worker": "tsx watch --env-file-if-exists=../../.env src/worker.ts",
+    "start": "tsx src/server.ts",
+    "start:worker": "tsx src/worker.ts",
+    "openapi": "tsx src/openapi.ts",
+    "test": "vitest run",
+    "lint": "eslint src test",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.4.0",
+    "@sidehustle/db": "workspace:*",
+    "@sidehustle/pricing": "workspace:*",
+    "@sidehustle/schemas": "workspace:*",
+    "bullmq": "^5.34.0",
+    "drizzle-orm": "^0.45.0",
+    "fastify": "^5.2.0",
+    "fastify-type-provider-zod": "^4.0.2",
+    "ioredis": "^5.4.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@sidehustle/config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8",
+    "concurrently": "^9.1.0"
+  }
+}
