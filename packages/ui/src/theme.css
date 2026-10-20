@@ -1,0 +1,32 @@
+/* Tailwind v4 theme mapped onto the tokens, so components can write bg-surface, text-ink, rounded-card. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-gold: var(--gold);
+  --color-on-gold: var(--on-gold);
+  --color-deep: var(--deep);
+  --color-on-deep: var(--on-deep);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+  --color-beauty: var(--c-beauty);
+  --color-fashion: var(--c-fashion);
+  --color-health: var(--c-health);
+  --color-phone: var(--c-phone);
+  --color-food: var(--c-food);
+  --color-home: var(--c-home);
+  --font-display: var(--display);
+  --font-body: var(--body);
+  --radius-card: var(--r);
+  --radius-field: var(--r-sm);
+}

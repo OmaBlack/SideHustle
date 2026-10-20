@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@import '@sidehustle/ui/tokens.css';
+@import '@sidehustle/ui/theme.css';
+@source '../../../../packages/ui/src';
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}

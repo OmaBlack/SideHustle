@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.9"
   },
   "scripts": {
     "build": "turbo run build",
@@ -14,7 +14,12 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:migrate": "pnpm --filter @sidehustle/db db:migrate",
+    "db:seed": "pnpm --filter @sidehustle/db db:seed",
+    "db:reset": "pnpm --filter @sidehustle/db db:reset",
+    "openapi": "pnpm --silent --filter @sidehustle/api openapi > apps/api/openapi.json",
+    "test:e2e": "pnpm --filter @sidehustle/web test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -23,5 +28,10 @@
     "turbo": "^2.3.3",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.23"
+    }
   }
 }

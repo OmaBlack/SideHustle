@@ -1,0 +1,1224 @@
+{
+ "_source": "SideHustle Marketplace prototype (claude.ai artifact 92pJ3ab1doGvF8WtCxmys8), extracted 2026-10-20. Prices are whole naira.",
+ "categories": [
+  {
+   "id": "beauty",
+   "name": "Beauty & Skincare",
+   "shape": "dropper"
+  },
+  {
+   "id": "fashion",
+   "name": "Fashion & Leather",
+   "shape": "tote"
+  },
+  {
+   "id": "health",
+   "name": "Healthcare & Pharmacy",
+   "shape": "firstaid"
+  },
+  {
+   "id": "phone",
+   "name": "Phone & Gadgets",
+   "shape": "earbuds"
+  },
+  {
+   "id": "food",
+   "name": "Food & Snacks",
+   "shape": "pack"
+  },
+  {
+   "id": "home",
+   "name": "Home & Cleaning",
+   "shape": "gallon"
+  }
+ ],
+ "vendors": [
+  {
+   "id": "luxe",
+   "name": "Luxe Leather Label",
+   "cat": "fashion",
+   "color": "#9A5A2C",
+   "loc": "Lekki Phase 1, Lagos",
+   "area": "Workshop in Aba, Abia",
+   "since": 2018,
+   "lead": "3–5 days",
+   "ships": "Nationwide",
+   "rating": 4.9,
+   "orders": 1240,
+   "reply": "Replies within 24 hours",
+   "custom": true,
+   "featured": true,
+   "about": "Handmade full-grain leather bags and accessories. A team of 12 artisans cuts and stitches every piece in Aba, and each one is finished and quality-checked at the Lekki studio before it ships.",
+   "about2": "Resellers come to Luxe for structured totes, personalised corporate gifts and white-label pieces they can sell under their own brand name.",
+   "tags": [
+    "Full-grain leather",
+    "Personalisation",
+    "White-label",
+    "Corporate gifting"
+   ],
+   "customNote": "Monograms, custom colours, your logo stamped inside, and corporate gift orders from 20 pieces. Custom work adds 2–4 days."
+  },
+  {
+   "id": "arewa",
+   "name": "Arewa Naturals",
+   "cat": "beauty",
+   "color": "#8B5A12",
+   "loc": "Kano",
+   "since": 2015,
+   "lead": "3–5 days",
+   "ships": "Nationwide",
+   "rating": 4.7,
+   "orders": 860,
+   "reply": "Replies within 2 days",
+   "about": "Women-led cooperative turning raw shea nuts from northern farms into unrefined butter for resellers and cosmetic makers.",
+   "tags": [
+    "Unrefined",
+    "Cooperative"
+   ]
+  },
+  {
+   "id": "ogunsoap",
+   "name": "Ogun Craft Soaps",
+   "cat": "beauty",
+   "color": "#4A4A3A",
+   "loc": "Abeokuta, Ogun",
+   "since": 2012,
+   "lead": "2–3 days",
+   "ships": "South-West",
+   "rating": 4.6,
+   "orders": 540,
+   "reply": "Replies same day",
+   "about": "Family soap makers using traditional cocoa-pod ash and palm kernel oil recipes.",
+   "tags": [
+    "Traditional recipe"
+   ]
+  },
+  {
+   "id": "glow",
+   "name": "Glow Labs",
+   "cat": "beauty",
+   "color": "#B23A6B",
+   "loc": "Ikeja, Lagos",
+   "since": 2020,
+   "lead": "1–2 days",
+   "ships": "Nationwide",
+   "rating": 4.8,
+   "orders": 1530,
+   "reply": "Replies within 24 hours",
+   "about": "Small-batch skincare lab making serums and toners for resale and private label.",
+   "tags": [
+    "Small batch",
+    "Private label"
+   ]
+  },
+  {
+   "id": "itoku",
+   "name": "Itoku Adire Collective",
+   "cat": "fashion",
+   "color": "#22408A",
+   "loc": "Itoku, Abeokuta",
+   "since": 2009,
+   "lead": "4–6 days",
+   "ships": "Nationwide",
+   "rating": 4.8,
+   "orders": 410,
+   "reply": "Replies within 2 days",
+   "about": "Collective of adire dyers hand-dyeing cotton with indigo and wax-resist patterns.",
+   "tags": [
+    "Hand-dyed",
+    "Indigo"
+   ]
+  },
+  {
+   "id": "abagarment",
+   "name": "Aba Garment Cluster",
+   "cat": "fashion",
+   "color": "#5B3FA0",
+   "loc": "Aba, Abia",
+   "since": 2014,
+   "lead": "5–7 days",
+   "ships": "Nationwide",
+   "rating": 4.5,
+   "orders": 980,
+   "reply": "Replies within 24 hours",
+   "about": "Group of Aba tailoring workshops producing plain and branded shirts in bulk.",
+   "tags": [
+    "Bulk orders"
+   ]
+  },
+  {
+   "id": "abaleather",
+   "name": "Aba Leatherworks",
+   "cat": "fashion",
+   "color": "#6B3A1F",
+   "loc": "Aba, Abia",
+   "since": 2011,
+   "lead": "5–7 days",
+   "ships": "Nationwide",
+   "rating": 4.6,
+   "orders": 720,
+   "reply": "Replies within 24 hours",
+   "about": "Aba shoemakers making palm slippers and sandals from local leather.",
+   "tags": [
+    "Footwear"
+   ]
+  },
+  {
+   "id": "yabastitch",
+   "name": "Yaba Stitch House",
+   "cat": "fashion",
+   "color": "#C0392B",
+   "loc": "Yaba, Lagos",
+   "since": 2019,
+   "lead": "3–4 days",
+   "ships": "Lagos & Ogun",
+   "rating": 4.7,
+   "orders": 330,
+   "reply": "Replies same day",
+   "about": "Yaba sewing studio making Ankara bags and accessories.",
+   "tags": [
+    "Ankara"
+   ]
+  },
+  {
+   "id": "carewell",
+   "name": "CareWell Labs",
+   "cat": "health",
+   "color": "#0A7C8C",
+   "loc": "Ota, Ogun",
+   "since": 2016,
+   "lead": "2–3 days",
+   "ships": "Nationwide",
+   "rating": 4.6,
+   "orders": 610,
+   "reply": "Replies within 24 hours",
+   "about": "Manufacturer of sanitizers and liquid hygiene products.",
+   "tags": [
+    "Manufacturer"
+   ]
+  },
+  {
+   "id": "safehands",
+   "name": "SafeHands Medical",
+   "cat": "health",
+   "color": "#0E6B7A",
+   "loc": "Yaba, Lagos",
+   "since": 2017,
+   "lead": "1–2 days",
+   "ships": "Lagos",
+   "rating": 4.8,
+   "orders": 450,
+   "reply": "Replies same day",
+   "about": "Distributor of first aid supplies and home medical devices across Lagos.",
+   "tags": [
+    "Medical devices"
+   ]
+  },
+  {
+   "id": "medlink",
+   "name": "MedLink Distributors",
+   "cat": "health",
+   "color": "#1F5F8B",
+   "loc": "Idumota, Lagos",
+   "since": 2008,
+   "lead": "1–2 days",
+   "ships": "Nationwide",
+   "rating": 4.5,
+   "orders": 2100,
+   "reply": "Replies within 24 hours",
+   "about": "Licensed pharmaceutical wholesaler supplying patent medicine stores.",
+   "tags": [
+    "Licensed wholesaler"
+   ]
+  },
+  {
+   "id": "cvhub",
+   "name": "Computer Village Hub",
+   "cat": "phone",
+   "color": "#2C5BD6",
+   "loc": "Ikeja, Lagos",
+   "since": 2013,
+   "lead": "1–2 days",
+   "ships": "Nationwide",
+   "rating": 4.4,
+   "orders": 3200,
+   "reply": "Replies same day",
+   "about": "Phone accessories importer with tested chargers and cables.",
+   "tags": [
+    "Tested stock"
+   ]
+  },
+  {
+   "id": "ikejagadget",
+   "name": "Ikeja Gadget Wholesale",
+   "cat": "phone",
+   "color": "#3346A8",
+   "loc": "Ikeja, Lagos",
+   "since": 2015,
+   "lead": "1–2 days",
+   "ships": "Nationwide",
+   "rating": 4.5,
+   "orders": 1800,
+   "reply": "Replies same day",
+   "about": "Gadget wholesaler stocking power banks and audio accessories with 30-day replacement.",
+   "tags": [
+    "30-day replacement"
+   ]
+  },
+  {
+   "id": "mamatee",
+   "name": "Mama Tee Snacks",
+   "cat": "food",
+   "color": "#B85C12",
+   "loc": "Ibadan, Oyo",
+   "since": 2016,
+   "lead": "3–4 days",
+   "ships": "South-West",
+   "rating": 4.8,
+   "orders": 690,
+   "reply": "Replies within 24 hours",
+   "about": "Ibadan snack kitchen frying chin chin fresh every day.",
+   "tags": [
+    "Made daily"
+   ]
+  },
+  {
+   "id": "ofada",
+   "name": "Ofada Foods",
+   "cat": "food",
+   "color": "#8A6A12",
+   "loc": "Ogun",
+   "since": 2018,
+   "lead": "2–3 days",
+   "ships": "Nationwide",
+   "rating": 4.6,
+   "orders": 520,
+   "reply": "Replies within 24 hours",
+   "about": "Plantain chips sealed for a 3-month shelf life.",
+   "tags": [
+    "3-month shelf life"
+   ]
+  },
+  {
+   "id": "bodija",
+   "name": "Bodija Market Traders",
+   "cat": "food",
+   "color": "#7A2E3A",
+   "loc": "Bodija, Ibadan",
+   "since": 2010,
+   "lead": "3–4 days",
+   "ships": "South-West",
+   "rating": 4.4,
+   "orders": 380,
+   "reply": "Replies within 2 days",
+   "about": "Group of Bodija market traders supplying dried zobo leaves, spices and grains.",
+   "tags": [
+    "Market direct"
+   ]
+  },
+  {
+   "id": "cleanchem",
+   "name": "CleanChem Supplies",
+   "cat": "home",
+   "color": "#4D7A1F",
+   "loc": "Ojota, Lagos",
+   "since": 2014,
+   "lead": "1–2 days",
+   "ships": "Lagos & Ogun",
+   "rating": 4.5,
+   "orders": 940,
+   "reply": "Replies same day",
+   "about": "Maker of liquid soaps, disinfectants and air fresheners in bulk sizes.",
+   "tags": [
+    "Bulk sizes"
+   ]
+  }
+ ],
+ "colours": {
+  "Cognac": "#9A5A2C",
+  "Black": "#1B1B1B",
+  "Oxblood": "#5E1A1D",
+  "Olive": "#5B6236",
+  "Tan": "#C08A55",
+  "Brown": "#5A3A22"
+ },
+ "products": [
+  {
+   "id": "shea",
+   "v": "arewa",
+   "cat": "beauty",
+   "shape": "tub",
+   "name": "Unrefined Shea Butter, 500g tub",
+   "unit": "tub",
+   "cost": 2200,
+   "rrp": 4000,
+   "moq": 20,
+   "lead": "3–5 days"
+  },
+  {
+   "id": "blacksoap",
+   "v": "ogunsoap",
+   "cat": "beauty",
+   "shape": "bar",
+   "name": "African Black Soap, 250g bar",
+   "unit": "bar",
+   "cost": 900,
+   "rrp": 1800,
+   "moq": 50,
+   "lead": "2–3 days"
+  },
+  {
+   "id": "serum",
+   "v": "glow",
+   "cat": "beauty",
+   "shape": "dropper",
+   "name": "Vitamin C Face Serum, 30ml",
+   "unit": "bottle",
+   "cost": 3500,
+   "rrp": 6500,
+   "moq": 12,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "lux-tote",
+   "v": "luxe",
+   "cat": "fashion",
+   "shape": "tote",
+   "name": "Structured Leather Tote",
+   "unit": "bag",
+   "cost": 18500,
+   "rrp": 32000,
+   "moq": 3,
+   "lead": "3–5 days",
+   "opts": [
+    {
+     "id": "colour",
+     "label": "Colour",
+     "type": "choice",
+     "values": [
+      [
+       "Cognac",
+       0
+      ],
+      [
+       "Black",
+       0
+      ],
+      [
+       "Oxblood",
+       0
+      ],
+      [
+       "Olive",
+       1000
+      ]
+     ]
+    },
+    {
+     "id": "hw",
+     "label": "Hardware",
+     "type": "choice",
+     "values": [
+      [
+       "Gold",
+       0
+      ],
+      [
+       "Silver",
+       0
+      ]
+     ]
+    },
+    {
+     "id": "mono",
+     "label": "Gold-foil monogram",
+     "type": "check",
+     "add": 1500
+    },
+    {
+     "id": "wl",
+     "label": "Your brand stamped inside",
+     "type": "check",
+     "add": 2000
+    },
+    {
+     "id": "gift",
+     "label": "Gift box",
+     "type": "check",
+     "add": 1200
+    }
+   ],
+   "notePh": "e.g. Monogram “A.O.” on 2 bags and “T.K.” on 1. Stamp “Glow by Ada” inside."
+  },
+  {
+   "id": "lux-cross",
+   "v": "luxe",
+   "cat": "fashion",
+   "shape": "crossbody",
+   "name": "Mini Crossbody Bag",
+   "unit": "bag",
+   "cost": 14000,
+   "rrp": 26000,
+   "moq": 3,
+   "lead": "3–5 days",
+   "opts": [
+    {
+     "id": "colour",
+     "label": "Colour",
+     "type": "choice",
+     "values": [
+      [
+       "Cognac",
+       0
+      ],
+      [
+       "Black",
+       0
+      ],
+      [
+       "Oxblood",
+       0
+      ],
+      [
+       "Tan",
+       0
+      ]
+     ]
+    },
+    {
+     "id": "strap",
+     "label": "Strap",
+     "type": "choice",
+     "values": [
+      [
+       "Leather",
+       0
+      ],
+      [
+       "Gold chain",
+       1500
+      ]
+     ]
+    },
+    {
+     "id": "mono",
+     "label": "Gold-foil monogram",
+     "type": "check",
+     "add": 1500
+    },
+    {
+     "id": "wl",
+     "label": "Your brand stamped inside",
+     "type": "check",
+     "add": 2000
+    }
+   ],
+   "notePh": "e.g. 2 black with chain strap, 1 tan with leather strap."
+  },
+  {
+   "id": "lux-card",
+   "v": "luxe",
+   "cat": "fashion",
+   "shape": "cardholder",
+   "name": "Leather Card Holder",
+   "unit": "piece",
+   "cost": 3500,
+   "rrp": 7500,
+   "moq": 10,
+   "lead": "3–5 days",
+   "opts": [
+    {
+     "id": "colour",
+     "label": "Colour",
+     "type": "choice",
+     "values": [
+      [
+       "Black",
+       0
+      ],
+      [
+       "Cognac",
+       0
+      ],
+      [
+       "Oxblood",
+       0
+      ],
+      [
+       "Olive",
+       0
+      ]
+     ]
+    },
+    {
+     "id": "mono",
+     "label": "Initials embossed",
+     "type": "check",
+     "add": 800
+    },
+    {
+     "id": "wl",
+     "label": "Your brand stamped",
+     "type": "check",
+     "add": 500
+    },
+    {
+     "id": "gift",
+     "label": "Gift sleeve",
+     "type": "check",
+     "add": 400
+    }
+   ],
+   "notePh": "e.g. Corporate order: emboss each holder with a staff member’s initials. List to follow."
+  },
+  {
+   "id": "lux-belt",
+   "v": "luxe",
+   "cat": "fashion",
+   "shape": "belt",
+   "name": "Classic Leather Belt",
+   "unit": "belt",
+   "cost": 5500,
+   "rrp": 11000,
+   "moq": 6,
+   "lead": "3–5 days",
+   "opts": [
+    {
+     "id": "colour",
+     "label": "Colour",
+     "type": "choice",
+     "values": [
+      [
+       "Black",
+       0
+      ],
+      [
+       "Brown",
+       0
+      ],
+      [
+       "Tan",
+       0
+      ]
+     ]
+    },
+    {
+     "id": "size",
+     "label": "Waist size",
+     "type": "choice",
+     "values": [
+      [
+       "S (28–30)",
+       0
+      ],
+      [
+       "M (32–34)",
+       0
+      ],
+      [
+       "L (36–38)",
+       0
+      ],
+      [
+       "XL (40–42)",
+       0
+      ],
+      [
+       "Mixed sizes",
+       0
+      ]
+     ]
+    },
+    {
+     "id": "buckle",
+     "label": "Buckle",
+     "type": "choice",
+     "values": [
+      [
+       "Silver",
+       0
+      ],
+      [
+       "Gold",
+       0
+      ],
+      [
+       "Matte black",
+       500
+      ]
+     ]
+    }
+   ],
+   "notePh": "Mixed sizes? Tell us how many of each, e.g. 2 M, 3 L, 1 XL."
+  },
+  {
+   "id": "lux-sleeve",
+   "v": "luxe",
+   "cat": "fashion",
+   "shape": "sleeve",
+   "name": "Leather Laptop Sleeve",
+   "unit": "sleeve",
+   "cost": 12000,
+   "rrp": 22000,
+   "moq": 3,
+   "lead": "3–5 days",
+   "opts": [
+    {
+     "id": "size",
+     "label": "Laptop size",
+     "type": "choice",
+     "values": [
+      [
+       "13\"",
+       0
+      ],
+      [
+       "14\"",
+       0
+      ],
+      [
+       "16\"",
+       2000
+      ]
+     ]
+    },
+    {
+     "id": "colour",
+     "label": "Colour",
+     "type": "choice",
+     "values": [
+      [
+       "Black",
+       0
+      ],
+      [
+       "Cognac",
+       0
+      ],
+      [
+       "Olive",
+       0
+      ]
+     ]
+    },
+    {
+     "id": "lining",
+     "label": "Lining",
+     "type": "choice",
+     "values": [
+      [
+       "Felt",
+       0
+      ],
+      [
+       "Suede",
+       1500
+      ]
+     ]
+    },
+    {
+     "id": "mono",
+     "label": "Gold-foil monogram",
+     "type": "check",
+     "add": 1500
+    }
+   ],
+   "notePh": "e.g. Fits a 14\" MacBook Pro. Add a pocket for the charger if possible."
+  },
+  {
+   "id": "lux-key",
+   "v": "luxe",
+   "cat": "fashion",
+   "shape": "keyholder",
+   "name": "Leather Key Holder",
+   "unit": "piece",
+   "cost": 1800,
+   "rrp": 4000,
+   "moq": 20,
+   "lead": "3–5 days",
+   "opts": [
+    {
+     "id": "colour",
+     "label": "Colour",
+     "type": "choice",
+     "values": [
+      [
+       "Cognac",
+       0
+      ],
+      [
+       "Black",
+       0
+      ],
+      [
+       "Tan",
+       0
+      ]
+     ]
+    },
+    {
+     "id": "wl",
+     "label": "Your brand stamped",
+     "type": "check",
+     "add": 300
+    }
+   ],
+   "notePh": "e.g. Stamp our estate name on all 50 for residents’ welcome packs."
+  },
+  {
+   "id": "adire",
+   "v": "itoku",
+   "cat": "fashion",
+   "shape": "fabric",
+   "name": "Hand-dyed Adire Fabric, 2 yards",
+   "unit": "piece",
+   "cost": 9000,
+   "rrp": 16000,
+   "moq": 5,
+   "lead": "4–6 days"
+  },
+  {
+   "id": "polo",
+   "v": "abagarment",
+   "cat": "fashion",
+   "shape": "polo",
+   "name": "Plain Cotton Polo Shirt",
+   "unit": "piece",
+   "cost": 3200,
+   "rrp": 6500,
+   "moq": 24,
+   "lead": "5–7 days"
+  },
+  {
+   "id": "slides",
+   "v": "abaleather",
+   "cat": "fashion",
+   "shape": "slippers",
+   "name": "Leather Palm Slippers",
+   "unit": "pair",
+   "cost": 4500,
+   "rrp": 9000,
+   "moq": 12,
+   "lead": "5–7 days"
+  },
+  {
+   "id": "tote",
+   "v": "yabastitch",
+   "cat": "fashion",
+   "shape": "bag",
+   "name": "Ankara Tote Bag",
+   "unit": "piece",
+   "cost": 2600,
+   "rrp": 5500,
+   "moq": 20,
+   "lead": "3–4 days"
+  },
+  {
+   "id": "sanitizer",
+   "v": "carewell",
+   "cat": "health",
+   "shape": "pump",
+   "name": "Hand Sanitizer, 500ml pump",
+   "unit": "bottle",
+   "cost": 1200,
+   "rrp": 2200,
+   "moq": 24,
+   "lead": "2–3 days"
+  },
+  {
+   "id": "firstaid",
+   "v": "safehands",
+   "cat": "health",
+   "shape": "firstaid",
+   "name": "Home First Aid Kit, 40 pieces",
+   "unit": "kit",
+   "cost": 6500,
+   "rrp": 11000,
+   "moq": 6,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "thermo",
+   "v": "safehands",
+   "cat": "health",
+   "shape": "thermo",
+   "name": "Digital Thermometer",
+   "unit": "piece",
+   "cost": 1800,
+   "rrp": 3500,
+   "moq": 20,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "masks",
+   "v": "medlink",
+   "cat": "health",
+   "shape": "masks",
+   "name": "3-ply Face Masks, box of 50",
+   "unit": "box",
+   "cost": 1500,
+   "rrp": 2800,
+   "moq": 20,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "vitamins",
+   "v": "medlink",
+   "cat": "health",
+   "shape": "jar",
+   "name": "Multivitamin Tablets, 60 count",
+   "unit": "jar",
+   "cost": 2600,
+   "rrp": 4500,
+   "moq": 12,
+   "lead": "1–2 days",
+   "note": "Over-the-counter supplement. Check the NAFDAC number on every batch."
+  },
+  {
+   "id": "paracetamol",
+   "v": "medlink",
+   "cat": "health",
+   "shape": "blister",
+   "name": "Paracetamol 500mg, 10 × 10 tablets",
+   "unit": "box",
+   "cost": 1900,
+   "rrp": 3000,
+   "moq": 20,
+   "lead": "1–2 days",
+   "note": "Reselling medicines needs a PCN Patent and Proprietary Medicine Vendor licence. We ask for it before shipping."
+  },
+  {
+   "id": "charger",
+   "v": "cvhub",
+   "cat": "phone",
+   "shape": "charger",
+   "name": "25W USB-C Fast Charger",
+   "unit": "piece",
+   "cost": 2800,
+   "rrp": 5000,
+   "moq": 20,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "cable",
+   "v": "cvhub",
+   "cat": "phone",
+   "shape": "cable",
+   "name": "Braided USB-C Cable, 1m",
+   "unit": "piece",
+   "cost": 700,
+   "rrp": 1800,
+   "moq": 50,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "powerbank",
+   "v": "ikejagadget",
+   "cat": "phone",
+   "shape": "powerbank",
+   "name": "10,000mAh Power Bank",
+   "unit": "piece",
+   "cost": 7500,
+   "rrp": 12500,
+   "moq": 10,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "earbuds",
+   "v": "ikejagadget",
+   "cat": "phone",
+   "shape": "earbuds",
+   "name": "Wireless Earbuds with Case",
+   "unit": "piece",
+   "cost": 6200,
+   "rrp": 11000,
+   "moq": 10,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "chinchin",
+   "v": "mamatee",
+   "cat": "food",
+   "shape": "pack",
+   "name": "Crunchy Chin Chin, 500g pack",
+   "unit": "pack",
+   "cost": 1100,
+   "rrp": 2000,
+   "moq": 40,
+   "lead": "3–4 days"
+  },
+  {
+   "id": "plantain",
+   "v": "ofada",
+   "cat": "food",
+   "shape": "chips",
+   "name": "Plantain Chips, 100g",
+   "unit": "pack",
+   "cost": 350,
+   "rrp": 700,
+   "moq": 100,
+   "lead": "2–3 days"
+  },
+  {
+   "id": "hibiscus",
+   "v": "bodija",
+   "cat": "food",
+   "shape": "leaves",
+   "name": "Dried Hibiscus (Zobo) Leaves",
+   "unit": "kg",
+   "cost": 2500,
+   "rrp": 4200,
+   "moq": 10,
+   "lead": "3–4 days"
+  },
+  {
+   "id": "liquidsoap",
+   "v": "cleanchem",
+   "cat": "home",
+   "shape": "gallon",
+   "name": "Multipurpose Liquid Soap, 4L",
+   "unit": "gallon",
+   "cost": 2800,
+   "rrp": 5000,
+   "moq": 12,
+   "lead": "1–2 days"
+  },
+  {
+   "id": "airfresh",
+   "v": "cleanchem",
+   "cat": "home",
+   "shape": "spray",
+   "name": "Car & Room Air Freshener",
+   "unit": "piece",
+   "cost": 650,
+   "rrp": 1500,
+   "moq": 48,
+   "lead": "1–2 days"
+  }
+ ],
+ "kits": [
+  {
+   "id": "skin",
+   "cat": "beauty",
+   "name": "Skincare Reseller Kit",
+   "price": 125000,
+   "items": [
+    [
+     "shea",
+     20
+    ],
+    [
+     "blacksoap",
+     50
+    ],
+    [
+     "serum",
+     12
+    ]
+   ],
+   "extras": [
+    "60 branded pouches",
+    "Instagram caption pack"
+   ],
+   "tip": "Sells well through WhatsApp status and office networks. Bundle soap and shea butter as gift sets."
+  },
+  {
+   "id": "leather",
+   "cat": "fashion",
+   "name": "Leather Gifting Kit",
+   "price": 98000,
+   "items": [
+    [
+     "lux-card",
+     10
+    ],
+    [
+     "lux-key",
+     20
+    ],
+    [
+     "lux-belt",
+     6
+    ]
+   ],
+   "extras": [
+    "Branded gift sleeves",
+    "Corporate pitch template"
+   ],
+   "tip": "Pitch to HR teams before December. Card holders and key holders are easy year-end staff gifts."
+  },
+  {
+   "id": "pharm",
+   "cat": "health",
+   "name": "Health Corner Kit",
+   "price": 125000,
+   "items": [
+    [
+     "sanitizer",
+     24
+    ],
+    [
+     "firstaid",
+     6
+    ],
+    [
+     "thermo",
+     20
+    ],
+    [
+     "masks",
+     20
+    ]
+   ],
+   "extras": [
+    "Shelf display card",
+    "Expiry date tracker"
+   ],
+   "tip": "No licence needed for these items. Offices, schools and estates reorder every month."
+  },
+  {
+   "id": "phone",
+   "cat": "phone",
+   "name": "Phone Accessories Starter",
+   "price": 215000,
+   "items": [
+    [
+     "charger",
+     20
+    ],
+    [
+     "cable",
+     50
+    ],
+    [
+     "powerbank",
+     10
+    ],
+    [
+     "earbuds",
+     10
+    ]
+   ],
+   "extras": [
+    "Charger display card",
+    "Warranty stickers"
+   ],
+   "tip": "Cables move fastest. Keep power banks for campus and market-day sales."
+  },
+  {
+   "id": "fashion",
+   "cat": "fashion",
+   "name": "Menswear Basics Kit",
+   "price": 124000,
+   "items": [
+    [
+     "polo",
+     24
+    ],
+    [
+     "slides",
+     12
+    ]
+   ],
+   "extras": [
+    "Size chart cards",
+    "Branded polybags"
+   ],
+   "tip": "Sell a polo and slippers together as a weekend bundle at a small discount."
+  },
+  {
+   "id": "snack",
+   "cat": "food",
+   "name": "Snack Box Kit",
+   "price": 75000,
+   "items": [
+    [
+     "chinchin",
+     40
+    ],
+    [
+     "plantain",
+     100
+    ]
+   ],
+   "extras": [
+    "Price tags",
+    "Shelf-life tracker sheet"
+   ],
+   "tip": "Supply small shops, offices and school gates. Check best-before dates weekly."
+  },
+  {
+   "id": "home",
+   "cat": "home",
+   "name": "Home Cleaning Kit",
+   "price": 62000,
+   "items": [
+    [
+     "liquidsoap",
+     12
+    ],
+    [
+     "airfresh",
+     48
+    ]
+   ],
+   "extras": [
+    "Refill price list"
+   ],
+   "tip": "Offer refills to estates and offices for repeat monthly orders."
+  }
+ ],
+ "states": [
+  "Lagos",
+  "Abuja (FCT)",
+  "Ogun",
+  "Oyo",
+  "Rivers",
+  "Kano",
+  "Kaduna",
+  "Enugu",
+  "Anambra",
+  "Delta",
+  "Edo",
+  "Abia",
+  "Kwara",
+  "Osun",
+  "Ondo",
+  "Ekiti",
+  "Plateau",
+  "Akwa Ibom",
+  "Cross River",
+  "Imo",
+  "Other"
+ ],
+ "delivery": [
+  {
+   "id": "pickup",
+   "name": "Pick up at Ikeja hub",
+   "fee": 0,
+   "eta": "Ready in 1–2 days"
+  },
+  {
+   "id": "lagos",
+   "name": "Delivery within Lagos",
+   "fee": 3500,
+   "eta": "2–4 days"
+  },
+  {
+   "id": "inter",
+   "name": "Interstate delivery",
+   "fee": 8500,
+   "eta": "4–7 days"
+  }
+ ],
+ "goals": [
+  50000,
+  100000,
+  250000,
+  500000
+ ],
+ "bundle": {
+  "minNaira": 100000,
+  "pct": 5
+ }
+}
