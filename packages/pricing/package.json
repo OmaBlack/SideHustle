@@ -1,0 +1,24 @@
+{
+  "name": "@sidehustle/pricing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure pricing rules for SideHustle: effective price, options, bundles, kits, freedom number, cart totals. No I/O.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixtures/prototype-catalogue.json": "./fixtures/prototype-catalogue.json",
+    "./fixtures/prototype": "./fixtures/prototype.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src test fixtures",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@sidehustle/config": "workspace:*",
+    "@vitest/coverage-v8": "^2.1.8",
+    "fast-check": "^3.23.2",
+    "vitest": "^2.1.8"
+  }
+}
