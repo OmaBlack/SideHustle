@@ -1,0 +1,13 @@
+{
+  "name": "@sidehustle/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./vitest": "./vitest.preset.ts",
+    "./tsconfig.json": "./tsconfig.json"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}
