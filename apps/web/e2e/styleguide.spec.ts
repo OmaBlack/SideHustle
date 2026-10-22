@@ -35,5 +35,5 @@ test('the stepper corrects a quantity below the MOQ and says so (AC-03)', async 
   await qty.fill('5');
   await qty.press('Enter');
   await expect(qty).toHaveValue('20');
-  await expect(page.getByRole('status')).toContainText('minimum order is 20');
+  await expect(page.getByRole('status').filter({ hasText: 'minimum order is 20' })).toBeVisible();
 });

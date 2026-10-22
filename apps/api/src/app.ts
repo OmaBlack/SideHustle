@@ -13,6 +13,7 @@ import type { Redis } from 'ioredis';
 import type { Config } from './config.js';
 import { registerErrorHandler } from './errors.js';
 import { registerAuth } from './lib/auth.js';
+import { setRateLimitScale } from './lib/ratelimit.js';
 import { DevProvider, PaystackProvider, type PaymentProvider } from './lib/payments/provider.js';
 import { accountRoutes } from './modules/account/routes.js';
 import { adminRoutes } from './modules/admin/routes.js';
@@ -49,6 +50,7 @@ const REQUEST_ID = /^[A-Za-z0-9._-]{1,128}$/;
 
 export async function buildApp(input: Omit<Deps, 'payments'> & { payments?: PaymentProvider }) {
   const deps: Deps = { ...input, payments: input.payments ?? defaultPaymentProvider(input.config) };
+  setRateLimitScale(deps.config.RATE_LIMIT_SCALE);
   const app = Fastify({
     logger:
       deps.config.NODE_ENV === 'test'
@@ -60,6 +62,7 @@ export async function buildApp(input: Omit<Deps, 'payments'> & { payments?: Paym
       return typeof incoming === 'string' && REQUEST_ID.test(incoming) ? incoming : randomUUID();
     },
     requestIdHeader: false,
+    trustProxy: deps.config.TRUST_PROXY,
   }).withTypeProvider<ZodTypeProvider>();
 
   app.decorate('deps', deps);

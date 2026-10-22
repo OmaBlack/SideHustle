@@ -13,6 +13,7 @@ describe('shared schemas', () => {
     expect(toE164('0801 234 5678')).toBe('+2348012345678');
     expect(toE164('2349012345678')).toBe('+2349012345678');
     expect(toE164('+234 (701) 234-5678')).toBe('+2347012345678');
+    expect(toE164('801 234 5678')).toBe('+2348012345678');
     expect(toE164('0601 234 5678')).toBeNull();
     expect(NigerianPhone.safeParse('+2348012345678').success).toBe(true);
     expect(NigerianPhone.safeParse('08012345678').success).toBe(false);

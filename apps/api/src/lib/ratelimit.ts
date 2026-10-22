@@ -13,9 +13,16 @@ export const LIMITS = {
 } as const;
 export type LimitName = keyof typeof LIMITS;
 
+let scale = 1;
+/** E2E and load tests raise every limit by a factor (RATE_LIMIT_SCALE); production keeps 1. */
+export function setRateLimitScale(n: number) {
+  scale = Math.max(1, n);
+}
+
 /** Fixed-window limiter in Redis (plan section 10). Throws 429 with Retry-After once the window is spent. */
 export async function rateLimit(redis: Redis, name: LimitName, key: string) {
-  const { max, windowSec } = LIMITS[name];
+  const { windowSec } = LIMITS[name];
+  const max = LIMITS[name].max * scale;
   const k = `rl:${name}:${key}`;
   const count = await redis.incr(k);
   if (count === 1) await redis.expire(k, windowSec);

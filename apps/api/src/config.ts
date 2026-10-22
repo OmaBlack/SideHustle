@@ -11,6 +11,12 @@ const Env = z.object({
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
   /** Paystack test or live secret. Empty = the dev payment provider (never in production). */
   PAYSTACK_SECRET_KEY: z.string().default(''),
+  /** True when the API sits behind the web proxy or a CDN, so rate limits see the client IP. */
+  TRUST_PROXY: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  RATE_LIMIT_SCALE: z.coerce.number().int().min(1).default(1),
   /** Off only for local http development; production always sets Secure cookies. */
   COOKIE_SECURE: z
     .enum(['true', 'false'])
@@ -25,6 +31,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(
       `Invalid environment: ${parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`,
     );
+  }
+  if (parsed.data.NODE_ENV === 'production' && parsed.data.RATE_LIMIT_SCALE !== 1) {
+    throw new Error('Invalid environment: RATE_LIMIT_SCALE must be 1 in production');
   }
   if (parsed.data.NODE_ENV === 'production' && !parsed.data.PAYSTACK_SECRET_KEY) {
     throw new Error('Invalid environment: PAYSTACK_SECRET_KEY is required in production');

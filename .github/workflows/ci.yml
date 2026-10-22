@@ -90,8 +90,26 @@ jobs:
         run: git diff --exit-code -- apps/api/openapi.json || (echo "::error::API changed. Run pnpm openapi and commit apps/api/openapi.json so the change is reviewed." && exit 1)
 
   ui:
-    name: UI accessibility (axe, light and dark, 320px and desktop)
+    name: E2E flows and accessibility (axe, light and dark, 320px and desktop)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sidehustle
+          POSTGRES_PASSWORD: sidehustle
+          POSTGRES_DB: sidehustle_e2e
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sidehustle" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      E2E_DATABASE_URL: postgres://sidehustle:sidehustle@localhost:5432/sidehustle_e2e
+      E2E_REDIS_URL: redis://localhost:6379/7
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
