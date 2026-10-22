@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { post } from '@/lib/api';
 import type { ProductDetail } from '@/lib/types';
+import { unitFor } from '@/lib/units';
 import { useAddToCart } from './AddToCart';
 import { Banner } from './Page';
 
@@ -51,8 +52,26 @@ export function ProductBuyPanel({ p }: { p: ProductDetail }) {
   const isCustom =
     note.trim().length > 0 || p.options.some((o) => o.type === 'check' && selection[o.id] === true);
 
+  const addButton = (
+    <Button
+      block
+      disabled={busy || !p.inStock}
+      onClick={() =>
+        add({
+          kind: 'product',
+          productId: p.id,
+          qty,
+          selection,
+          ...(note.trim() ? { note: note.trim() } : {}),
+        })
+      }
+    >
+      {p.inStock ? t('add') : t('outOfStock')}
+    </Button>
+  );
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-20 md:pb-0">
       <div className="flex flex-wrap items-center gap-2">
         <Price
           size="lg"
@@ -137,7 +156,9 @@ export function ProductBuyPanel({ p }: { p: ProductDetail }) {
             onCorrected={(m) => setCorrected(m)}
             labels={{ decrease: t('decrease'), increase: t('increase'), quantity: t('quantity') }}
           />
-          <span className="text-[13px] text-muted">{t('minOrder', { moq: p.moq, unit: p.unit })}</span>
+          <span className="text-[13px] text-muted">
+            {t('minOrder', { moq: p.moq, unit: unitFor(p.unit, p.moq) })}
+          </span>
         </div>
         <p role="status" className="text-[13px] text-warn">
           {corrected ? t('moqCorrected', { min: corrected }) : ''}
@@ -148,21 +169,15 @@ export function ProductBuyPanel({ p }: { p: ProductDetail }) {
         <span className="text-muted">{t('lineTotal')}</span>
         <span className="font-display text-xl font-extrabold tabular-nums">{formatNaira(unit * qty)}</span>
       </div>
-      <Button
-        block
-        disabled={busy || !p.inStock}
-        onClick={() =>
-          add({
-            kind: 'product',
-            productId: p.id,
-            qty,
-            selection,
-            ...(note.trim() ? { note: note.trim() } : {}),
-          })
-        }
-      >
-        {p.inStock ? t('add') : t('outOfStock')}
-      </Button>
+      {/* Desktop: the button sits in the flow. Phones: a bar above the tab bar keeps it in reach (one button per breakpoint). */}
+      <div className="hidden md:block">{addButton}</div>
+      <div className="fixed inset-x-0 bottom-14 z-30 flex items-center gap-3 border-t border-line bg-surface px-4 py-2.5 md:hidden">
+        <div className="flex min-w-0 flex-col">
+          <span className="text-[12px] text-muted">{t('lineTotal')}</span>
+          <span className="font-display text-lg font-extrabold tabular-nums">{formatNaira(unit * qty)}</span>
+        </div>
+        <div className="ml-auto">{addButton}</div>
+      </div>
       {error && (
         <p role="alert" className="text-[13px] text-danger">
           {error}

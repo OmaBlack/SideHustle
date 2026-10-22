@@ -13,6 +13,8 @@ const PUBLIC = [
   '/login',
   '/signup',
   '/privacy',
+  '/account/deleted',
+  '/products/does-not-exist',
 ];
 const SIGNED_IN: [keyof typeof DEMO, string[]][] = [
   ['buyer', ['/cart', '/checkout', '/orders', '/account', '/verify']],
@@ -40,6 +42,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
       test(`${path} is accessible`, async ({ page }) => {
         await page.goto(path);
         await expect(page.locator('h1')).toBeVisible();
+        // WCAG 2.4.2: every page but home has its own title.
+        if (path !== '/') expect(await page.title()).not.toBe('SideHustle');
         await expectAxeClean(page);
         await expectNoSideScroll(page);
       });
@@ -55,6 +59,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
           await expect(page.getByRole('status').filter({ hasText: /Loading/ })).toHaveCount(0, {
             timeout: 15_000,
           });
+          expect(await page.title(), path).not.toBe('SideHustle');
           await expectAxeClean(page);
           await expectNoSideScroll(page);
         }

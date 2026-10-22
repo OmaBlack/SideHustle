@@ -1,5 +1,6 @@
 import { KitCard, ProductCard, VendorCard } from '@sidehustle/ui';
 import { useTranslations } from 'next-intl';
+import { unitFor } from '@/lib/units';
 import type { KitView, ProductView, VendorListItem } from '@/lib/types';
 
 /** Translated card wrappers shared by server and client pages. */
@@ -14,7 +15,7 @@ export function ProductTile({ p }: { p: ProductView }) {
       unitKobo={p.unitKobo}
       originalKobo={p.originalKobo}
       discountPct={p.discountPct}
-      moqText={t('moq', { moq: p.moq, unit: p.unit })}
+      moqText={t('moq', { moq: p.moq, unit: unitFor(p.unit, p.moq) })}
       marginText={t('margin', { pct: p.marginPct })}
       customisableText={p.customisable ? t('customisable') : undefined}
       shape={p.artKey}

@@ -12,6 +12,7 @@ import { PrivacyActions } from '@/components/PrivacyActions';
 import { api, del, post, put } from '@/lib/api';
 import { useRequireLogin } from '@/lib/session';
 import type { Me } from '@/lib/types';
+import { PageLoading } from '@/components/PageLoading';
 
 interface Account {
   user: Me;
@@ -73,7 +74,7 @@ export default function AccountPage() {
   if (!a)
     return (
       <Page title={t('title')}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
   const marketing = a.consents.some((c) => c.purpose === 'marketing' && !c.withdrawnAt);

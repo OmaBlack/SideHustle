@@ -2,6 +2,7 @@
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { Page } from './Page';
+import { PageLoading } from './PageLoading';
 
 export function AdminGate({
   title,
@@ -28,7 +29,7 @@ export function AdminGate({
   if (!ready)
     return (
       <Page title={title}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
   return (

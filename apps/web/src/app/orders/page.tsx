@@ -7,6 +7,7 @@ import { Page } from '@/components/Page';
 import { api } from '@/lib/api';
 import { useRequireLogin } from '@/lib/session';
 import type { OrderView } from '@/lib/types';
+import { PageLoading } from '@/components/PageLoading';
 
 /** FR-ORD-01: reference, date, item count, delivery method, total, status and items. */
 export default function OrdersPage() {
@@ -21,7 +22,7 @@ export default function OrdersPage() {
   return (
     <Page title={t('title')}>
       {!orders.data ? (
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       ) : orders.data.length === 0 ? (
         <EmptyState
           title={t('empty')}

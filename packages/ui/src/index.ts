@@ -8,7 +8,14 @@ export { Stepper, type StepperProps } from './components/Stepper.js';
 export { Price, type PriceProps } from './components/Price.js';
 export { MarginBadge, type MarginBadgeProps } from './components/MarginBadge.js';
 export { LinkProvider, UiLink, type LinkComponent } from './components/Link.js';
-export { ProductArt, categoryColor, CATEGORY_COLOR, type ProductArtProps } from './components/ProductArt.js';
+export {
+  ProductArt,
+  categoryColor,
+  CATEGORY_COLOR,
+  FALLBACK_SHAPE,
+  SHAPE_KEYS,
+  type ProductArtProps,
+} from './components/ProductArt.js';
 export { Monogram, initials, type MonogramProps } from './components/Monogram.js';
 export { ProductCard, type ProductCardProps } from './components/ProductCard.js';
 export { KitCard, type KitCardProps } from './components/KitCard.js';
@@ -20,3 +27,4 @@ export { OrderProgress, type OrderProgressProps } from './components/OrderProgre
 export { ToastProvider, useToast, ToastOnMount } from './components/Toast.js';
 export { EmptyState, type EmptyStateProps } from './components/EmptyState.js';
 export { BottomTabBar, type BottomTabBarProps, type TabItem } from './components/BottomTabBar.js';
+export { Skeleton, type SkeletonProps } from './components/Skeleton.js';

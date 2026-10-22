@@ -48,6 +48,9 @@ test('a buyer buys a starter kit and the vendor ships it (UC-1, UC-6, AC-11)', a
   await expect(page).toHaveURL(/\/cart$/);
   await expect(page.getByRole('link', { name: 'Leather Gifting Kit' })).toBeVisible();
   await page.getByRole('link', { name: 'Go to checkout' }).click();
+  // FR-CHK-04: the estimate is visible before the quote.
+  await expect(page.getByText('Estimated total')).toBeVisible();
+  await expect(page.getByText('₦98,000').first()).toBeVisible();
   await page.getByRole('button', { name: 'Review total' }).click();
   await expect(page.getByText('Order summary')).toBeVisible();
   await page.getByRole('button', { name: /^Pay ₦98,000$/ }).click();
@@ -158,6 +161,7 @@ test('a visitor signs up with consent and the 18+ confirmation, then can downloa
   await page.getByRole('button', { name: 'Delete my account' }).click();
   await page.getByLabel('Your password').last().fill('a long enough password');
   await page.getByRole('button', { name: 'Delete my account forever' }).click();
-  await expect(page).toHaveURL(/\/\?deleted=1/);
+  await expect(page).toHaveURL(/\/account\/deleted$/);
+  await expect(page.getByRole('heading', { name: 'Your account has been deleted' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Log in' }).first()).toBeVisible();
 });

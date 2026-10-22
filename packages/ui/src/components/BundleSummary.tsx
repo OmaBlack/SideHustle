@@ -15,7 +15,8 @@ export interface BundleSummaryProps {
     pay: string;
     resale: string;
     profit: string;
-    margin: string;
+    /** Finished text, e.g. "47% margin". */
+    marginText: string;
     /** e.g. "Spend ₦12,000 more for 5% off" — shown when there is no discount yet. */
     hint?: string;
     estimate: string;
@@ -43,7 +44,7 @@ export function BundleSummary({ labels, ...b }: BundleSummaryProps) {
         {row(labels.profit, formatNaira(b.profitKobo))}
       </dl>
       <div>
-        <MarginBadge>{labels.margin.replace('{pct}', String(b.marginPct))}</MarginBadge>
+        <MarginBadge>{labels.marginText}</MarginBadge>
       </div>
       {labels.hint && <p className="text-[12.5px]">{labels.hint}</p>}
       <p className="text-[11.5px] opacity-80">{labels.estimate}</p>

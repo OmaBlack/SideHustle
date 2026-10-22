@@ -56,7 +56,8 @@ export function Header() {
             )}
             <Link
               href="/cart"
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 font-semibold text-ink no-underline"
+              // Phones use the bottom tab bar for Cart and Log in, so the header shows them from md up only.
+              className="hidden min-h-11 items-center gap-1.5 rounded-full px-3 font-semibold text-ink no-underline md:inline-flex"
             >
               {t('cart')}
               <span
@@ -76,7 +77,7 @@ export function Header() {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 font-bold text-on-accent no-underline"
+                className="hidden min-h-11 items-center rounded-full bg-accent px-4 font-bold text-on-accent no-underline md:inline-flex"
               >
                 {t('login')}
               </Link>

@@ -10,7 +10,8 @@
     "lint": "eslint src e2e",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "build:e2e": "NEXT_DIST_DIR=.next-e2e next build"
   },
   "dependencies": {
     "@sidehustle/schemas": "workspace:*",

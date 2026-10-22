@@ -9,6 +9,7 @@ import { Banner, Card, Page, Section } from '@/components/Page';
 import { api, post } from '@/lib/api';
 import { useRequireLogin } from '@/lib/session';
 import type { OrderView } from '@/lib/types';
+import { PageLoading } from '@/components/PageLoading';
 
 const FINAL = ['delivered', 'completed', 'refunded', 'cancelled', 'expired'];
 
@@ -31,7 +32,7 @@ export default function OrderPage({ params }: { params: Promise<{ ref: string }>
   if (!o)
     return (
       <Page title={ref}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
   const steps = [t('steps.paid'), t('steps.confirmed'), t('steps.dispatched'), t('steps.delivered')] as const;

@@ -46,7 +46,7 @@ export default defineConfig({
       command: `pnpm next start --port ${port}`,
       port,
       reuseExistingServer: !process.env.CI,
-      env: { API_ORIGIN: `http://localhost:${apiPort}` },
+      env: { API_ORIGIN: `http://localhost:${apiPort}`, NEXT_DIST_DIR: process.env.NEXT_DIST_DIR ?? '' },
     },
   ],
 });

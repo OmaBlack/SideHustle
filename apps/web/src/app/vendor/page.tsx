@@ -9,6 +9,7 @@ import { Banner, Card, Page, Section } from '@/components/Page';
 import { api, post } from '@/lib/api';
 import type { Category } from '@/lib/types';
 import { useVendor } from '@/lib/vendor';
+import { PageLoading } from '@/components/PageLoading';
 
 interface Licence {
   id: string;
@@ -25,7 +26,7 @@ export default function VendorHome() {
   if (loading)
     return (
       <Page title={t('title')}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
   if (!vendor) return <Apply />;

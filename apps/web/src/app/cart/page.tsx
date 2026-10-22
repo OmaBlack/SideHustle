@@ -2,11 +2,19 @@
 import { Button, EmptyState, Price, ProductArt, Stepper, formatNaira } from '@sidehustle/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Banner, Card, Page } from '@/components/Page';
-import { del, patch, post } from '@/lib/api';
+import { ApiError, del, patch, post } from '@/lib/api';
 import { useCart, useRequireLogin } from '@/lib/session';
 import type { CartView } from '@/lib/types';
+import { PageLoading } from '@/components/PageLoading';
+
+function without<T>(o: Record<string, T>, key: string): Record<string, T> {
+  const next = { ...o };
+  delete next[key];
+  return next;
+}
 
 /** FR-CART-01..05. */
 export default function CartPage() {
@@ -15,11 +23,32 @@ export default function CartPage() {
   const cart = useCart(!!me.data);
   const qc = useQueryClient();
   const set = (c: CartView) => qc.setQueryData(['cart'], c);
+  // Plan section 9: quantities change on screen at once; taps within 400 ms send one request; the server's totals win.
+  const [pending, setPending] = useState<Record<string, number>>({});
+  const [lineError, setLineError] = useState<Record<string, string>>({});
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
+  const changeQty = (id: string, qty: number) => {
+    setPending((p) => ({ ...p, [id]: qty }));
+    clearTimeout(timers.current[id]);
+    timers.current[id] = setTimeout(async () => {
+      try {
+        set((await patch<{ cart: CartView }>(`/cart/lines/${id}`, { qty })).cart);
+        setLineError((x) => without(x, id));
+      } catch (e) {
+        setLineError((x) => ({ ...x, [id]: e instanceof ApiError ? e.title : String(e) }));
+        await qc.invalidateQueries({ queryKey: ['cart'] });
+      } finally {
+        setPending((p) => (p[id] === qty ? without(p, id) : p));
+      }
+    }, 400);
+  };
+  const updating = Object.keys(pending).length > 0;
   const c = cart.data;
   if (!me.data || !c)
     return (
       <Page title={t('title')}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
   return (
@@ -108,11 +137,9 @@ export default function CartPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   {l.kind === 'product' ? (
                     <Stepper
-                      value={l.qty}
+                      value={pending[l.id] ?? l.qty}
                       min={l.moq ?? 1}
-                      onChange={async (v) =>
-                        set((await patch<{ cart: CartView }>(`/cart/lines/${l.id}`, { qty: v })).cart)
-                      }
+                      onChange={(v) => changeQty(l.id, v)}
                       labels={{
                         decrease: t('decrease', { name: l.name }),
                         increase: t('increase', { name: l.name }),
@@ -134,8 +161,15 @@ export default function CartPage() {
                 </div>
                 <div className="flex justify-between border-t border-line pt-2 text-[14px]">
                   <span>{t('lineTotal')}</span>
-                  <span className="font-bold tabular-nums">{formatNaira(l.lineTotalKobo)}</span>
+                  <span className="font-bold tabular-nums">
+                    {formatNaira(pending[l.id] !== undefined ? l.unitKobo * pending[l.id]! : l.lineTotalKobo)}
+                  </span>
                 </div>
+                {lineError[l.id] && (
+                  <p role="alert" className="text-[12.5px] font-semibold text-danger">
+                    {lineError[l.id]}
+                  </p>
+                )}
                 {l.discountKobo > 0 && (
                   <div className="flex justify-between text-[13px] text-good">
                     <span>{t('bundleDiscount')}</span>
@@ -145,7 +179,10 @@ export default function CartPage() {
               </li>
             ))}
           </ul>
-          <Card className="flex h-fit flex-col gap-2 md:sticky md:top-20">
+          <Card className={`flex h-fit flex-col gap-2 md:sticky md:top-20 ${updating ? 'opacity-60' : ''}`}>
+            <p aria-live="polite" className="text-[12.5px] text-muted empty:hidden">
+              {updating ? t('updating') : ''}
+            </p>
             <div className="flex justify-between">
               <span>{t('subtotal')}</span>
               <span className="tabular-nums">{formatNaira(c.subtotalKobo)}</span>
@@ -161,7 +198,11 @@ export default function CartPage() {
               <span className="tabular-nums">{formatNaira(c.totalKobo)}</span>
             </div>
             <p className="text-[12.5px] text-muted">{t('deliveryLater')}</p>
-            {c.canCheckout ? (
+            {updating ? (
+              <span className="inline-flex min-h-11 items-center justify-center rounded-full bg-sunk px-5 font-bold text-muted">
+                {t('checkout')}
+              </span>
+            ) : c.canCheckout ? (
               <Link
                 href="/checkout"
                 className="inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-5 font-bold text-on-accent no-underline"

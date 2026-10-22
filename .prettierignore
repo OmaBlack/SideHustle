@@ -5,3 +5,4 @@ coverage
 .next
 dist
 apps/api/openapi.json
+.next-e2e

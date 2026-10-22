@@ -1,5 +1,10 @@
+import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { PortalNav } from '@/components/PortalNav';
+
+export async function generateMetadata() {
+  return { title: (await getTranslations('titles'))('vendor') };
+}
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   return (

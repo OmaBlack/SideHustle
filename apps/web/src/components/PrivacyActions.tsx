@@ -93,7 +93,7 @@ export function PrivacyActions({ email, phone }: { email: string; phone: string 
               e.preventDefault();
               if (await erase.run(() => post('/me/delete', { password: deletePassword }))) {
                 await qc.invalidateQueries();
-                router.push('/?deleted=1');
+                router.push('/account/deleted');
               }
             }}
           >

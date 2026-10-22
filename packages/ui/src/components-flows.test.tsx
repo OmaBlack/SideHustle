@@ -15,7 +15,12 @@ import {
   ToastProvider,
   VendorCard,
   initials,
+  FALLBACK_SHAPE,
+  ProductArt,
+  SHAPE_KEYS,
+  Skeleton,
 } from './index.js';
+import catalogue from '../../pricing/fixtures/prototype-catalogue.json' with { type: 'json' };
 
 afterEach(cleanup);
 
@@ -155,7 +160,7 @@ describe('BundleSummary', () => {
           pay: 'To pay',
           resale: 'Resale',
           profit: 'Profit',
-          margin: '{pct}% margin',
+          marginText: '47% margin',
           estimate: 'Estimates',
         }}
       />,
@@ -261,5 +266,26 @@ describe('Toast, EmptyState, BottomTabBar', () => {
     );
     expect(screen.getByRole('link', { name: /Cart/ }).getAttribute('aria-current')).toBe('page');
     expect(screen.getByRole('link', { name: /Cart/ }).textContent).toContain('3');
+  });
+});
+
+describe('ProductArt', () => {
+  it('has a drawing for every product shape in the seeded catalogue', () => {
+    const shapes = [
+      ...new Set((catalogue as { products: { shape: string }[] }).products.map((p) => p.shape)),
+    ];
+    expect(shapes.filter((s) => !SHAPE_KEYS.includes(s))).toEqual([]);
+    for (const s of shapes) {
+      const { container, unmount } = render(<ProductArt shape={s} />);
+      expect(container.querySelector('path')!.getAttribute('d')).not.toBe(FALLBACK_SHAPE);
+      unmount();
+    }
+  });
+});
+
+describe('Skeleton', () => {
+  it('is hidden from assistive tech', () => {
+    const { container } = render(<Skeleton className="h-4" />);
+    expect(container.firstElementChild!.getAttribute('aria-hidden')).toBe('true');
   });
 });

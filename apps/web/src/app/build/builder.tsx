@@ -261,7 +261,7 @@ export function Builder() {
               pay: t('pay'),
               resale: t('resale'),
               profit: t('profit'),
-              margin: t('margin'),
+              marginText: t('margin', { pct: q?.marginPct ?? 0 }),
               hint,
               estimate: t('estimate'),
             }}

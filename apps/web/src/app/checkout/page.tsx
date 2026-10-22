@@ -10,6 +10,7 @@ import { Banner, Card, Page, Section } from '@/components/Page';
 import { api, post } from '@/lib/api';
 import { useCart, useRequireLogin } from '@/lib/session';
 import type { OrderView } from '@/lib/types';
+import { PageLoading } from '@/components/PageLoading';
 
 interface Method {
   code: string;
@@ -52,7 +53,7 @@ export default function CheckoutPage() {
   if (!u)
     return (
       <Page title={t('title')}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
   if (!u.phoneVerified || !u.emailVerified) {
@@ -199,6 +200,30 @@ export default function CheckoutPage() {
             </>
           )}
         </Section>
+        {/* FR-CHK-04: the buyer sees what they will pay as they choose delivery; the quote below confirms it. */}
+        {!quote && cart.data && (
+          <Card className="flex flex-col gap-2">
+            <div className="flex justify-between">
+              <span>{t('subtotal')}</span>
+              <span className="tabular-nums">{formatNaira(cart.data.subtotalKobo)}</span>
+            </div>
+            {cart.data.bundleDiscountKobo > 0 && (
+              <div className="flex justify-between">
+                <span>{t('bundleDiscount')}</span>
+                <span className="tabular-nums">−{formatNaira(cart.data.bundleDiscountKobo)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>{t('deliveryFee')}</span>
+              <span className="tabular-nums">{formatNaira(m?.feeKobo ?? 0)}</span>
+            </div>
+            <div className="flex justify-between text-lg font-extrabold">
+              <span>{t('estimatedTotal')}</span>
+              <span className="tabular-nums">{formatNaira(cart.data.totalKobo + (m?.feeKobo ?? 0))}</span>
+            </div>
+            <p className="text-[12.5px] text-muted">{t('estimateNote')}</p>
+          </Card>
+        )}
         <FormError error={review.error} />
         <Button type="submit" variant={quote ? 'ghost' : 'primary'} disabled={review.busy}>
           {quote ? t('reviewAgain') : t('review')}

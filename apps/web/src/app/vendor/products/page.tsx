@@ -16,6 +16,7 @@ import { Banner, Card, Page, Section } from '@/components/Page';
 import { api, del, post, put } from '@/lib/api';
 import type { Category, StoredOption } from '@/lib/types';
 import { useVendor } from '@/lib/vendor';
+import { PageLoading } from '@/components/PageLoading';
 
 interface VendorProduct {
   id: string;
@@ -86,7 +87,7 @@ export default function VendorProducts() {
   if (!vendor)
     return (
       <Page title={t('productsTitle')}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
 

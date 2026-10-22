@@ -21,14 +21,18 @@ export default async function ProductPage({ params }: Params) {
   const v = p.vendor;
   return (
     <Page title={p.name} lead={p.category.name}>
+      {/* Phones read picture → buy panel → vendor; from md the picture and vendor share the left column. */}
       <div className="grid gap-5 md:grid-cols-2">
-        <div className="flex flex-col gap-4">
-          <ProductArt
-            shape={p.artKey}
-            category={p.category.slug}
-            label={p.name}
-            className="aspect-square w-full max-w-[420px]"
-          />
+        <ProductArt
+          shape={p.artKey}
+          category={p.category.slug}
+          label={p.name}
+          className="mx-auto aspect-square w-full max-w-[200px] md:col-start-1 md:row-start-1 md:mx-0 md:max-w-[420px]"
+        />
+        <div className="md:col-start-2 md:row-span-2 md:row-start-1">
+          <ProductBuyPanel p={p} />
+        </div>
+        <div className="md:col-start-1 md:row-start-2">
           {/* FR-PROD-03: vendor trust information. */}
           <Card className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
@@ -61,7 +65,6 @@ export default async function ProductPage({ params }: Params) {
             {p.note && <p className="text-[13px]">{p.note}</p>}
           </Card>
         </div>
-        <ProductBuyPanel p={p} />
       </div>
     </Page>
   );

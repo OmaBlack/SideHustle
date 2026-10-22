@@ -28,6 +28,21 @@ export default async function Home() {
         <p className="max-w-[60ch] text-muted">{t('lead')}</p>
       </div>
       <HomeSlideshow slides={slides} />
+      <Section
+        title={t('kits')}
+        id="kits"
+        action={
+          <Link href="/kits" className="font-semibold text-accent">
+            {t('seeAll')}
+          </Link>
+        }
+      >
+        <div className={wideGrid}>
+          {kits.slice(0, 3).map((k) => (
+            <KitTile key={k.id} k={k} />
+          ))}
+        </div>
+      </Section>
       <Section title={t('how')} id="how">
         <ol className="grid gap-3 sm:grid-cols-3">
           {(['one', 'two', 'three'] as const).map((k, i) => (
@@ -47,21 +62,6 @@ export default async function Home() {
         </ol>
         <div>
           <StartButton />
-        </div>
-      </Section>
-      <Section
-        title={t('kits')}
-        id="kits"
-        action={
-          <Link href="/kits" className="font-semibold text-accent">
-            {t('seeAll')}
-          </Link>
-        }
-      >
-        <div className={wideGrid}>
-          {kits.slice(0, 3).map((k) => (
-            <KitTile key={k.id} k={k} />
-          ))}
         </div>
       </Section>
       <Section

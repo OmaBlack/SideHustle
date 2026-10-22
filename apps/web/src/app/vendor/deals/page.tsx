@@ -8,6 +8,7 @@ import { Banner, Card, Page, Section } from '@/components/Page';
 import { api, del, post } from '@/lib/api';
 import type { DealView } from '@/lib/types';
 import { useVendor } from '@/lib/vendor';
+import { PageLoading } from '@/components/PageLoading';
 
 /** FR-VP-03..05, UC-4: promo (category or product) or launch, headline ≤ 60, live slideshow preview, remove. */
 export default function VendorDeals() {
@@ -42,7 +43,7 @@ export default function VendorDeals() {
   if (!vendor)
     return (
       <Page title={t('dealsTitle')}>
-        <p role="status">{t('loading')}</p>
+        <PageLoading text={t('loading')} />
       </Page>
     );
   const left = 60 - d.headline.length;
