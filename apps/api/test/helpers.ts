@@ -18,7 +18,7 @@ export const ids = {
 };
 
 /** A fresh, seeded database and a built app. Call once per test file (files run one at a time). */
-export async function setup() {
+export async function setup(opts: { payments?: (webOrigin: string) => DevProvider } = {}) {
   await resetDatabase(DATABASE_URL);
   await runMigrations(DATABASE_URL);
   const conn = createDb(DATABASE_URL, { max: 6 });
@@ -32,7 +32,7 @@ export async function setup() {
     REDIS_URL,
     WEB_ORIGIN: 'http://web.test',
   });
-  const payments = new DevProvider(config.WEB_ORIGIN);
+  const payments = opts.payments ? opts.payments(config.WEB_ORIGIN) : new DevProvider(config.WEB_ORIGIN);
   const app = await buildApp({ config, db: conn.db, redis, payments });
   await app.ready();
   return {

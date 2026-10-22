@@ -5,7 +5,7 @@ import type { NotifyPayload } from '../../lib/outbox.js';
 import { enqueue } from '../../lib/outbox.js';
 import type { PaymentProvider } from '../../lib/payments/provider.js';
 import { renderTemplate } from '../../lib/templates.js';
-import { processPaymentSuccess } from '../payments/service.js';
+import { processPaymentSuccess, processRefunds } from '../payments/service.js';
 
 const MAX_ATTEMPTS = 8;
 
@@ -154,12 +154,13 @@ export async function reconcilePayments(
   for (const { ref } of rows) {
     const v = await provider.verify(ref).catch(() => null);
     if (v?.status === 'success') {
-      const outcome = await processPaymentSuccess(db, provider, {
+      const { outcome, refundIds } = await processPaymentSuccess(db, {
         reference: ref,
         amountKobo: v.amountKobo,
         currency: v.currency,
         channel: v.channel,
       });
+      await processRefunds(db, provider, refundIds);
       if (outcome !== 'duplicate') n++;
     }
   }

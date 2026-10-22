@@ -22,7 +22,7 @@ import { daysFromNow } from '../../lib/time.js';
 import { appConfigValue, dealView, productView } from '../catalogue/service.js';
 import { orderViews } from '../orders/view.js';
 import { transitionFulfilment, type FulfilmentEvent } from '../orders/service.js';
-import { refund } from '../payments/service.js';
+import { processRefunds, requestRefund } from '../payments/service.js';
 
 const Id = z.object({ id: z.string().uuid() });
 
@@ -378,16 +378,25 @@ export const vendorRoutes: FastifyPluginAsyncZod = async (app) => {
         .where(and(eq(schema.fulfilments.id, req.params.id), eq(schema.fulfilments.vendorId, vendorId)));
       if (!f) throw notFound('Order not found');
       const body = (req.body ?? {}) as { reason?: string; trackingRef?: string };
-      return db.transaction(async (tx) => ({
-        fulfilment: await transitionFulfilment(tx, f.id, event, {
+      const refundIds: string[] = [];
+      const result = await db.transaction((tx) =>
+        transitionFulfilment(tx, f.id, event, {
           ...body,
           refund: async (orderId, amountKobo) => {
-            await refund(tx, payments, orderId, amountKobo, `Vendor rejected: ${body.reason ?? ''}`.trim(), {
-              fulfilmentId: f.id,
-            });
+            const r = await requestRefund(
+              tx,
+              orderId,
+              amountKobo,
+              `Vendor rejected: ${body.reason ?? ''}`.trim(),
+              { fulfilmentId: f.id },
+            );
+            refundIds.push(r.id);
           },
         }),
-      }));
+      );
+      // The provider is only called once the transaction has committed.
+      await processRefunds(db, payments, refundIds);
+      return { fulfilment: result };
     };
   app.post(
     '/vendor/fulfilments/:id/confirm',

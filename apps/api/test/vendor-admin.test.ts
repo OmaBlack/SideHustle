@@ -1,7 +1,9 @@
 import { schema } from '@sidehustle/db';
 import { and, eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { DevProvider } from '../src/lib/payments/provider.js';
 import { DevNotifier } from '../src/lib/notifier.js';
+import { processRefund, retryPendingRefunds } from '../src/modules/payments/service.js';
 import { drainOutbox, slaReminders } from '../src/modules/notifications/service.js';
 import {
   checkout,
@@ -589,5 +591,120 @@ describe.skipIf(!hasServices)('admin console (FR-ADM-01..11) and worker jobs', (
       .from(schema.outbox)
       .where(and(sql`${schema.outbox.dedupeKey} like 'sla12:%'`));
     expect(new Set(reminders.map((r) => r.dedupeKey)).size).toBe(reminders.length);
+  });
+});
+
+/** A dev provider whose refund call can be made to fail, and whose refund list can be faked. */
+class FlakyProvider extends DevProvider {
+  failing = 0;
+  calls = 0;
+  reported: number | null = null;
+  override async refund(reference: string, amountKobo: number) {
+    this.calls++;
+    if (this.failing > 0) {
+      this.failing--;
+      throw new Error('provider down');
+    }
+    return super.refund(reference, amountKobo);
+  }
+  override async refundedAmount(reference: string) {
+    return this.reported ?? super.refundedAmount(reference);
+  }
+}
+
+describe.skipIf(!hasServices)('refunds are sent after commit and retried safely', () => {
+  let env: Env;
+  let flaky: FlakyProvider;
+  let admin: Awaited<ReturnType<typeof staffUser>>;
+  beforeAll(async () => {
+    env = await setup({ payments: (origin) => (flaky = new FlakyProvider(origin)) });
+    admin = await staffUser(env, { role: 'admin' });
+  });
+  afterAll(async () => env?.close());
+
+  async function paidOrder() {
+    const buyer = await verifiedBuyer(env);
+    await buyer.client.post('/cart/lines', { kind: 'kit', kitId: ids.kit('snack') });
+    const { order } = await checkout(buyer.client);
+    await pay(buyer.client, order.ref);
+    return order as { id: string; ref: string };
+  }
+  const rowsFor = (orderId: string) =>
+    env.db
+      .select({ r: schema.refunds })
+      .from(schema.refunds)
+      .innerJoin(schema.payments, eq(schema.payments.id, schema.refunds.paymentId))
+      .where(eq(schema.payments.orderId, orderId));
+  const journalsFor = async (orderId: string) =>
+    (
+      await env.db
+        .select()
+        .from(schema.ledgerJournals)
+        .where(and(eq(schema.ledgerJournals.orderId, orderId), eq(schema.ledgerJournals.kind, 'refund')))
+    ).length;
+
+  it('keeps a refund pending when the provider fails, then processes it once on retry', async () => {
+    const order = await paidOrder();
+    flaky.failing = 1;
+    const res = await admin.client.post(`/admin/orders/${order.ref}/refunds`, {
+      amountKobo: 1_000_000,
+      reason: 'Damaged pack',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.refund.status).toBe('pending');
+    expect(await journalsFor(order.id)).toBe(0);
+
+    expect(await processRefund(env.db, flaky, res.body.refund.id)).toBe('processed');
+    expect(await processRefund(env.db, flaky, res.body.refund.id)).toBe('skipped');
+    const rows = await rowsFor(order.id);
+    expect(rows.map((x) => x.r.status)).toEqual(['processed']);
+    expect(await journalsFor(order.id)).toBe(1);
+  });
+
+  it('does not call the provider again when it already shows the refund (no double pay)', async () => {
+    const order = await paidOrder();
+    flaky.failing = 1;
+    const res = await admin.client.post(`/admin/orders/${order.ref}/refunds`, {
+      amountKobo: 1_000_000,
+      reason: 'Damaged pack',
+    });
+    expect(res.body.refund.status).toBe('pending');
+    const callsBefore = flaky.calls;
+    // The earlier attempt actually reached the provider, and the row is old enough to be a retry.
+    flaky.reported = 1_000_000;
+    await env.db
+      .update(schema.refunds)
+      .set({ createdAt: new Date(Date.now() - 5 * 60_000) })
+      .where(eq(schema.refunds.id, res.body.refund.id));
+    expect(await retryPendingRefunds(env.db, flaky)).toBeGreaterThanOrEqual(1);
+    flaky.reported = null;
+    expect(flaky.calls).toBe(callsBefore);
+    const rows = await rowsFor(order.id);
+    expect(rows.map((x) => x.r.status)).toEqual(['processed']);
+    expect(await journalsFor(order.id)).toBe(1);
+  });
+
+  it('marks a refund failed after 24 hours of provider errors and audits it', async () => {
+    const order = await paidOrder();
+    flaky.failing = 1000;
+    const res = await admin.client.post(`/admin/orders/${order.ref}/refunds`, {
+      amountKobo: 1_000_000,
+      reason: 'Damaged pack',
+    });
+    await env.db
+      .update(schema.refunds)
+      .set({ createdAt: new Date(Date.now() - 25 * 3_600_000) })
+      .where(eq(schema.refunds.id, res.body.refund.id));
+    await retryPendingRefunds(env.db, flaky);
+    flaky.failing = 0;
+    expect((await rowsFor(order.id))[0]!.r.status).toBe('failed');
+    const log = await env.db
+      .select()
+      .from(schema.auditLog)
+      .where(
+        and(eq(schema.auditLog.action, 'refund.failed'), eq(schema.auditLog.entityId, res.body.refund.id)),
+      );
+    expect(log).toHaveLength(1);
+    expect(await journalsFor(order.id)).toBe(0);
   });
 });

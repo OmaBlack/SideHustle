@@ -1,7 +1,8 @@
 import { schema, type Database } from '@sidehustle/db';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, lt, sql } from 'drizzle-orm';
 import type { Tx } from '../../lib/db.js';
 import type { PaymentProvider } from '../../lib/payments/provider.js';
+import { audit } from '../../lib/audit.js';
 import { enqueue } from '../../lib/outbox.js';
 import { conflict } from '../../lib/problems.js';
 import { reReserve } from '../orders/service.js';
@@ -105,10 +106,14 @@ export async function writeRefundJournal(tx: Tx, orderId: string, amountKobo: nu
   ]);
 }
 
-/** Issues a refund through the provider and records it, refusing to refund more than was paid. */
-export async function refund(
+/**
+ * Records a refund request inside the caller's transaction: checks the cap and
+ * inserts a `pending` row. It never calls the provider; `processRefund` does
+ * that after the transaction commits, so a rollback can never follow money
+ * already sent and no row lock is held across a network call.
+ */
+export async function requestRefund(
   tx: Tx,
-  provider: PaymentProvider,
   orderId: string,
   amountKobo: number,
   reason: string,
@@ -132,7 +137,6 @@ export async function refund(
       `Paid ${payment.amountKobo}, already refunded ${done!.sum}`,
     );
   }
-  const { providerRef } = await provider.refund(payment.providerRef, amountKobo);
   const [r] = await tx
     .insert(schema.refunds)
     .values({
@@ -140,31 +144,133 @@ export async function refund(
       fulfilmentId: opts.fulfilmentId ?? null,
       amountKobo,
       reason,
-      status: 'processed',
-      providerRef,
+      status: 'pending',
       actorId: opts.actorId ?? null,
     })
     .returning();
-  await writeRefundJournal(tx, orderId, amountKobo, reason);
-  const [order] = await tx.select().from(schema.orders).where(eq(schema.orders.id, orderId));
-  if (
-    done!.sum + amountKobo === payment.amountKobo &&
-    order &&
-    !['expired', 'cancelled'].includes(order.status)
-  ) {
-    await tx.update(schema.orders).set({ status: 'refunded' }).where(eq(schema.orders.id, orderId));
-  }
-  await enqueue(
-    tx,
-    'notify.user',
-    {
-      to: order!.buyerId,
-      template: 'order_refunded',
-      data: { ref: order!.ref, amountKobo, channels: ['sms', 'email'] },
-    },
-    `refund:${r!.id}`,
-  );
   return r!;
+}
+
+/** A pending refund older than this may already have reached the provider, so ask it first. */
+const RETRY_AFTER_MS = 60_000;
+
+/**
+ * Sends one pending refund to the provider and records the result. Call it
+ * after the requesting transaction has committed. The provider call happens
+ * between two short transactions. On a provider error the row stays `pending`
+ * and the error is rethrown for the caller (or the worker) to handle.
+ */
+export async function processRefund(
+  db: Database,
+  provider: PaymentProvider,
+  refundId: string,
+): Promise<'processed' | 'skipped'> {
+  const claim = await db.transaction(async (tx) => {
+    const [r] = await tx.select().from(schema.refunds).where(eq(schema.refunds.id, refundId)).for('update');
+    if (!r || r.status !== 'pending') return null;
+    const [payment] = await tx.select().from(schema.payments).where(eq(schema.payments.id, r.paymentId));
+    const [processed] = await tx
+      .select({ sum: sql<number>`coalesce(sum(${schema.refunds.amountKobo}), 0)`.mapWith(Number) })
+      .from(schema.refunds)
+      .where(and(eq(schema.refunds.paymentId, r.paymentId), eq(schema.refunds.status, 'processed')));
+    return { refund: r, payment: payment!, processedKobo: processed!.sum };
+  });
+  if (!claim) return 'skipped';
+  const { refund: r, payment } = claim;
+
+  let providerRef: string | null = null;
+  const retry = Date.now() - r.createdAt.getTime() > RETRY_AFTER_MS;
+  // A retry may follow a call that succeeded but was never recorded: never pay twice.
+  const alreadyRefunded =
+    retry && (await provider.refundedAmount(payment.providerRef)) >= claim.processedKobo + r.amountKobo;
+  if (!alreadyRefunded) providerRef = (await provider.refund(payment.providerRef, r.amountKobo)).providerRef;
+
+  return db.transaction(async (tx) => {
+    const [cur] = await tx.select().from(schema.refunds).where(eq(schema.refunds.id, r.id)).for('update');
+    if (!cur || cur.status !== 'pending') return 'skipped';
+    await tx
+      .update(schema.refunds)
+      .set({ status: 'processed', providerRef })
+      .where(eq(schema.refunds.id, r.id));
+    const [order] = await tx
+      .select()
+      .from(schema.orders)
+      .where(eq(schema.orders.id, payment.orderId))
+      .for('update');
+    await writeRefundJournal(tx, payment.orderId, r.amountKobo, r.reason);
+    const [total] = await tx
+      .select({ sum: sql<number>`coalesce(sum(${schema.refunds.amountKobo}), 0)`.mapWith(Number) })
+      .from(schema.refunds)
+      .where(and(eq(schema.refunds.paymentId, payment.id), eq(schema.refunds.status, 'processed')));
+    if (total!.sum === payment.amountKobo && order && !['expired', 'cancelled'].includes(order.status)) {
+      await tx.update(schema.orders).set({ status: 'refunded' }).where(eq(schema.orders.id, order.id));
+    }
+    // A late payment refund (the order stays expired) has its own notification, enqueued with the request.
+    if (order && order.status !== 'expired') {
+      await enqueue(
+        tx,
+        'notify.user',
+        {
+          to: order.buyerId,
+          template: 'order_refunded',
+          data: { ref: order.ref, amountKobo: r.amountKobo, channels: ['sms', 'email'] },
+        },
+        `refund:${r.id}`,
+      );
+    }
+    return 'processed';
+  });
+}
+
+/** After the transaction: process each requested refund; failures stay pending for the worker to retry. */
+export async function processRefunds(db: Database, provider: PaymentProvider, ids: string[]) {
+  for (const id of ids) {
+    try {
+      await processRefund(db, provider, id);
+    } catch {
+      // Left pending; the refunds.process job retries it.
+    }
+  }
+}
+
+/** A pending refund that still has not gone through after this long is marked failed for an admin to handle. */
+const REFUND_GIVE_UP_MS = 24 * 3_600_000;
+
+/**
+ * Worker job: retry pending refunds older than a minute, oldest first. A refund
+ * pending for more than 24 hours (by created_at) is marked failed and audited.
+ * Returns how many were processed.
+ */
+export async function retryPendingRefunds(db: Database, provider: PaymentProvider, now = new Date()) {
+  const rows = await db
+    .select()
+    .from(schema.refunds)
+    .where(
+      and(
+        eq(schema.refunds.status, 'pending'),
+        lt(schema.refunds.createdAt, new Date(now.getTime() - 60_000)),
+      ),
+    )
+    .orderBy(asc(schema.refunds.createdAt))
+    .limit(50);
+  let n = 0;
+  for (const r of rows) {
+    try {
+      if ((await processRefund(db, provider, r.id)) === 'processed') n++;
+    } catch {
+      if (now.getTime() - r.createdAt.getTime() > REFUND_GIVE_UP_MS) {
+        await db.transaction(async (tx) => {
+          const res = await tx
+            .update(schema.refunds)
+            .set({ status: 'failed' })
+            .where(and(eq(schema.refunds.id, r.id), eq(schema.refunds.status, 'pending')))
+            .returning({ id: schema.refunds.id });
+          if (res.length) await audit(tx, null, 'refund.failed', 'refund', r.id);
+        });
+      }
+    }
+  }
+  return n;
 }
 
 export type PaymentOutcome = 'paid' | 'duplicate' | 'late_paid' | 'late_refunded' | 'mismatch' | 'unknown';
@@ -177,10 +283,10 @@ export type PaymentOutcome = 'paid' | 'duplicate' | 'late_paid' | 'late_refunded
  */
 export async function processPaymentSuccess(
   db: Database,
-  provider: PaymentProvider,
   evt: { reference: string; amountKobo: number; currency: string; channel?: string; raw?: unknown },
-): Promise<PaymentOutcome> {
-  return db.transaction(async (tx) => {
+): Promise<{ outcome: PaymentOutcome; refundIds: string[] }> {
+  const refundIds: string[] = [];
+  const outcome = await db.transaction(async (tx): Promise<PaymentOutcome> => {
     const [order] = await tx
       .select()
       .from(schema.orders)
@@ -219,15 +325,16 @@ export async function processPaymentSuccess(
           { journalId: j!.id, account: 'buyer_clearing', amountKobo: order.totalKobo },
           { journalId: j!.id, account: 'refunds', amountKobo: -order.totalKobo },
         ]);
-        const { providerRef } = await provider.refund(payment.providerRef, order.totalKobo);
-        await tx.insert(schema.refunds).values({
-          paymentId: payment.id,
-          amountKobo: order.totalKobo,
-          reason: 'Late payment, stock no longer available',
-          status: 'processed',
-          providerRef,
-        });
-        await writeRefundJournal(tx, order.id, order.totalKobo, `Late payment refund ${order.ref}`);
+        const [lr] = await tx
+          .insert(schema.refunds)
+          .values({
+            paymentId: payment.id,
+            amountKobo: order.totalKobo,
+            reason: 'Late payment, stock no longer available',
+            status: 'pending',
+          })
+          .returning();
+        refundIds.push(lr!.id);
         await enqueue(
           tx,
           'notify.user',
@@ -275,4 +382,5 @@ export async function processPaymentSuccess(
     }
     return order.status === 'expired' ? 'late_paid' : 'paid';
   });
+  return { outcome, refundIds };
 }

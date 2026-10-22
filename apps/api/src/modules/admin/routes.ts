@@ -25,7 +25,7 @@ import { badRequest, conflict, notFound } from '../../lib/problems.js';
 import { dealView } from '../catalogue/service.js';
 import { orderViews } from '../orders/view.js';
 import { transitionFulfilment, type FulfilmentEvent } from '../orders/service.js';
-import { refund } from '../payments/service.js';
+import { processRefunds, requestRefund } from '../payments/service.js';
 
 const Id = z.object({ id: z.string().uuid() });
 const Ref = z.object({ ref: z.string().max(20) });
@@ -354,7 +354,7 @@ export const adminRoutes: FastifyPluginAsyncZod = async (app) => {
             );
           if (!f) throw badRequest('BAD_FULFILMENT', 'That fulfilment is not part of this order');
         }
-        const row = await refund(tx, payments, o.id, req.body.amountKobo, req.body.reason, {
+        const row = await requestRefund(tx, o.id, req.body.amountKobo, req.body.reason, {
           fulfilmentId: req.body.fulfilmentId,
           actorId: actor(req),
         });
@@ -365,7 +365,9 @@ export const adminRoutes: FastifyPluginAsyncZod = async (app) => {
         });
         return row;
       });
-      return reply.status(201).send({ refund: r });
+      await processRefunds(db, payments, [r.id]);
+      const [current] = await db.select().from(schema.refunds).where(eq(schema.refunds.id, r.id));
+      return reply.status(201).send({ refund: current ?? r });
     },
   );
 
@@ -381,7 +383,8 @@ export const adminRoutes: FastifyPluginAsyncZod = async (app) => {
     async (req) => {
       const [o] = await db.select().from(schema.orders).where(eq(schema.orders.ref, req.params.ref));
       if (!o) throw notFound('Order not found');
-      return db.transaction(async (tx) => {
+      const refundIds: string[] = [];
+      const result = await db.transaction(async (tx) => {
         const { outcome } = req.params;
         if (outcome === 'open' && o.status !== 'delivered')
           throw conflict('BAD_TRANSITION', 'Only delivered orders can be disputed');
@@ -398,13 +401,18 @@ export const adminRoutes: FastifyPluginAsyncZod = async (app) => {
             .where(eq(schema.refunds.paymentId, p!.id));
           const left = p!.amountKobo - done!.s;
           if (left > 0)
-            await refund(tx, payments, o.id, left, `Dispute: ${req.body.reason}`, { actorId: actor(req) });
+            refundIds.push(
+              (await requestRefund(tx, o.id, left, `Dispute: ${req.body.reason}`, { actorId: actor(req) }))
+                .id,
+            );
         }
         const status = outcome === 'open' ? 'disputed' : outcome === 'complete' ? 'completed' : 'refunded';
         await tx.update(schema.orders).set({ status }).where(eq(schema.orders.id, o.id));
         await audit(tx, actor(req), `order.dispute.${outcome}`, 'order', o.id, { reason: req.body.reason });
         return { status };
       });
+      await processRefunds(db, payments, refundIds);
+      return result;
     },
   );
 
@@ -414,19 +422,23 @@ export const adminRoutes: FastifyPluginAsyncZod = async (app) => {
       const [f] = await db.select().from(schema.fulfilments).where(eq(schema.fulfilments.id, req.params.id));
       if (!f) throw notFound('Fulfilment not found');
       const body = (req.body ?? {}) as { reason?: string; trackingRef?: string };
-      return db.transaction(async (tx) => {
+      const refundIds: string[] = [];
+      const out = await db.transaction(async (tx) => {
         const result = await transitionFulfilment(tx, f.id, event, {
           ...body,
           refund: async (orderId, amountKobo) => {
-            await refund(tx, payments, orderId, amountKobo, `Rejected: ${body.reason ?? ''}`.trim(), {
+            const r = await requestRefund(tx, orderId, amountKobo, `Rejected: ${body.reason ?? ''}`.trim(), {
               fulfilmentId: f.id,
               actorId: actor(req),
             });
+            refundIds.push(r.id);
           },
         });
         await audit(tx, actor(req), `fulfilment.${event}`, 'fulfilment', f.id, body);
         return { fulfilment: result };
       });
+      await processRefunds(db, payments, refundIds);
+      return out;
     };
   // Admins run hub fulfilments and can act on vendor ones when a vendor cannot (support cases).
   app.post(

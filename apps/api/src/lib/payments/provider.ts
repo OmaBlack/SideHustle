@@ -33,6 +33,8 @@ export interface PaymentProvider {
   initialize(input: InitializeInput): Promise<InitializeResult>;
   verify(reference: string): Promise<VerifyResult>;
   refund(reference: string, amountKobo: number): Promise<{ providerRef: string }>;
+  /** Total the provider has already refunded against a transaction; lets a retry avoid paying twice. */
+  refundedAmount(reference: string): Promise<number>;
   /** Verifies the webhook signature over the exact raw body. */
   verifyWebhook(rawBody: Buffer, headers: Record<string, string | string[] | undefined>): boolean;
   parseWebhook(body: unknown): PaymentEvent;
@@ -102,6 +104,11 @@ export class PaystackProvider implements PaymentProvider {
     return { providerRef: String(d.id) };
   }
 
+  async refundedAmount(_reference: string): Promise<number> {
+    // Paystack's refund-list endpoint could not be confirmed from its documentation; do not guess an API.
+    throw new Error('refundedAmount not implemented for Paystack');
+  }
+
   verifyWebhook(rawBody: Buffer, headers: Record<string, string | string[] | undefined>) {
     const sig = headers['x-paystack-signature'];
     if (typeof sig !== 'string') return false;
@@ -135,6 +142,7 @@ export class PaystackProvider implements PaymentProvider {
 export class DevProvider implements PaymentProvider {
   readonly name = 'dev' as const;
   readonly paid = new Map<string, number>();
+  readonly refunded = new Map<string, number>();
   constructor(private readonly webOrigin: string) {}
   async initialize(i: InitializeInput) {
     return { authorizationUrl: `${this.webOrigin}/pay/dev/${i.reference}` };
@@ -145,8 +153,12 @@ export class DevProvider implements PaymentProvider {
       ? { status: 'pending', amountKobo: 0, currency: 'NGN' }
       : { status: 'success', amountKobo: amount, currency: 'NGN', channel: 'dev' };
   }
-  async refund(reference: string) {
+  async refund(reference: string, amountKobo: number) {
+    this.refunded.set(reference, (this.refunded.get(reference) ?? 0) + amountKobo);
     return { providerRef: `dev-refund-${reference}-${Date.now()}` };
+  }
+  async refundedAmount(reference: string) {
+    return this.refunded.get(reference) ?? 0;
   }
   verifyWebhook() {
     return false;

@@ -6,7 +6,7 @@ import { HttpProblem } from '../../errors.js';
 import { requireUser } from '../../lib/auth.js';
 import { DevProvider } from '../../lib/payments/provider.js';
 import { forbidden } from '../../lib/problems.js';
-import { processPaymentSuccess } from './service.js';
+import { processPaymentSuccess, processRefunds } from './service.js';
 
 export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
   const { db, payments } = app.deps;
@@ -31,13 +31,14 @@ export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
     // Never trust the event alone: confirm with the provider (FR-CHK-06).
     const v = await payments.verify(evt.reference);
     if (v.status !== 'success') return reply.status(200).send({ ok: true, ignored: true });
-    const outcome = await processPaymentSuccess(db, payments, {
+    const { outcome, refundIds } = await processPaymentSuccess(db, {
       reference: evt.reference,
       amountKobo: v.amountKobo,
       currency: v.currency,
       channel: v.channel,
       raw: evt.raw,
     });
+    await processRefunds(db, payments, refundIds);
     return reply.status(200).send({ ok: true, outcome });
   });
 
@@ -52,14 +53,14 @@ export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
       if (!o) throw new HttpProblem(404, 'NOT_FOUND', 'Order not found');
       if (o.buyerId !== u.id) throw forbidden();
       payments.paid.set(o.ref, o.totalKobo);
-      return {
-        outcome: await processPaymentSuccess(db, payments, {
-          reference: o.ref,
-          amountKobo: o.totalKobo,
-          currency: 'NGN',
-          channel: 'dev',
-        }),
-      };
+      const { outcome, refundIds } = await processPaymentSuccess(db, {
+        reference: o.ref,
+        amountKobo: o.totalKobo,
+        currency: 'NGN',
+        channel: 'dev',
+      });
+      await processRefunds(db, payments, refundIds);
+      return { outcome };
     },
   );
 };

@@ -11,6 +11,7 @@ import { loadConfig } from './config.js';
 import { DevNotifier } from './lib/notifier.js';
 import { drainOutbox, reconcilePayments, slaReminders } from './modules/notifications/service.js';
 import { expireOrders } from './modules/orders/service.js';
+import { retryPendingRefunds } from './modules/payments/service.js';
 
 const config = loadConfig();
 const log = (level: string, msg: string, extra: object = {}) =>
@@ -37,6 +38,7 @@ const JOBS: Record<string, () => Promise<unknown>> = {
   'outbox.drain': () => drainOutbox(db, notifier),
   'vendor.sla': () => slaReminders(db),
   'payments.reconcile': () => reconcilePayments(db, payments),
+  'refunds.process': () => retryPendingRefunds(db, payments),
 };
 
 const worker = new Worker(
@@ -61,6 +63,7 @@ const every = {
   'outbox.drain': 5_000,
   'vendor.sla': 15 * 60_000,
   'payments.reconcile': 15 * 60_000,
+  'refunds.process': 60_000,
 };
 for (const [name, ms] of Object.entries(every)) {
   await system.upsertJobScheduler(
