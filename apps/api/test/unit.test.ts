@@ -44,6 +44,14 @@ describe('moderation [Default]', () => {
     expect(moderationFlags('Call 0803 123 4567')).toEqual(['phone']);
     expect(moderationFlags('Call +234 803 123 4567')).toEqual(['phone']);
   });
+  it('flags an email inside a sentence', () => {
+    expect(moderationFlags('please write to ada.o+shop@example.ng today')).toContain('email');
+  });
+  it('stays linear on pathological input', () => {
+    const t0 = performance.now();
+    expect(moderationFlags('+'.repeat(10_000))).toEqual([]);
+    expect(performance.now() - t0).toBeLessThan(50);
+  });
 });
 
 describe('Paystack adapter', () => {

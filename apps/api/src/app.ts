@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import cookie from '@fastify/cookie';
+import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import type { Database } from '@sidehustle/db';
 import Fastify from 'fastify';
@@ -11,7 +12,7 @@ import {
 } from 'fastify-type-provider-zod';
 import type { Redis } from 'ioredis';
 import type { Config } from './config.js';
-import { registerErrorHandler } from './errors.js';
+import { HttpProblem, registerErrorHandler } from './errors.js';
 import { registerAuth } from './lib/auth.js';
 import { setRateLimitScale } from './lib/ratelimit.js';
 import { DevProvider, PaystackProvider, type PaymentProvider } from './lib/payments/provider.js';
@@ -73,6 +74,19 @@ export async function buildApp(input: Omit<Deps, 'payments'> & { payments?: Paym
   });
   registerErrorHandler(app);
   await app.register(cookie);
+  // Baseline ceiling per IP for every route; sensitive actions keep their tighter limits in lib/ratelimit.ts.
+  // The Redis store needs a real client; the OpenAPI generator passes a stub, so fall back to memory then.
+  const realRedis = typeof (deps.redis as { defineCommand?: unknown }).defineCommand === 'function';
+  await app.register(rateLimit, {
+    global: true,
+    max: 300 * deps.config.RATE_LIMIT_SCALE,
+    timeWindow: '1 minute',
+    nameSpace: 'rl:global:',
+    keyGenerator: (req) => req.ip,
+    ...(realRedis ? { redis: deps.redis } : {}),
+    errorResponseBuilder: () =>
+      new HttpProblem(429, 'RATE_LIMITED', 'Too many requests. Please wait and try again.'),
+  });
   registerAuth(app);
 
   await app.register(swagger, {

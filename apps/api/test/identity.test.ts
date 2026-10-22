@@ -1,7 +1,9 @@
 import { schema } from '@sidehustle/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Client, hasServices, newBuyer, setup, type Env } from './helpers.js';
+import { buildApp } from '../src/app.js';
+import { loadConfig } from '../src/config.js';
+import { Client, DATABASE_URL, REDIS_URL, hasServices, newBuyer, setup, type Env } from './helpers.js';
 
 describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
   let env: Env;
@@ -116,6 +118,23 @@ describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
     for (let i = 0; i < 11; i++)
       last = (await c.post('/auth/login', { email: 'limit@example.com', password: 'x' })).status;
     expect(last).toBe(429);
+  });
+
+  it('applies a global per-IP ceiling to every route (NFR-SEC-04)', async () => {
+    await env.redis.flushdb();
+    const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, WEB_ORIGIN: 'http://web.test' });
+    const app = await buildApp({ config, db: env.db, redis: env.redis, payments: env.payments });
+    await app.ready();
+    try {
+      let last;
+      for (let i = 0; i < 301; i++) last = await app.inject({ method: 'GET', url: '/v1/categories' });
+      expect(last!.statusCode).toBe(429);
+      expect(last!.headers['content-type']).toContain('application/problem+json');
+      expect(last!.json().code).toBe('RATE_LIMITED');
+    } finally {
+      await app.close();
+      await env.redis.flushdb();
+    }
   });
 
   it('asks for login on protected routes (FR-ACC-06)', async () => {
