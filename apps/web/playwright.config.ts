@@ -32,6 +32,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       env: {
         NODE_ENV: 'development',
+        DEV_TOOLS: 'true',
         DATABASE_URL: E2E_DATABASE_URL,
         REDIS_URL: E2E_REDIS_URL,
         PORT: String(apiPort),

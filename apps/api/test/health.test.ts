@@ -13,7 +13,13 @@ describe.skipIf(!DATABASE_URL || !REDIS_URL)('GET /v1/health', () => {
   let conn: ReturnType<typeof createDb>;
   let redis: Redis;
   beforeAll(async () => {
-    const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, APP_VERSION: '1.2.3' });
+    const config = loadConfig({
+      NODE_ENV: 'test',
+      DEV_TOOLS: 'true',
+      DATABASE_URL,
+      REDIS_URL,
+      APP_VERSION: '1.2.3',
+    });
     conn = createDb(config.DATABASE_URL, { max: 2 });
     redis = new Redis(config.REDIS_URL);
     app = await buildApp({ config, db: conn.db, redis });
@@ -39,7 +45,11 @@ describe.skipIf(!DATABASE_URL || !REDIS_URL)('GET /v1/health', () => {
 });
 
 describe('app without dependencies', () => {
-  const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL: 'postgres://x@localhost/x' });
+  const config = loadConfig({
+    NODE_ENV: 'test',
+    DEV_TOOLS: 'true',
+    DATABASE_URL: 'postgres://x@localhost/x',
+  });
   const failing = {
     db: { execute: async () => Promise.reject(new Error('down')) },
     redis: { ping: async () => Promise.reject(new Error('down')) },

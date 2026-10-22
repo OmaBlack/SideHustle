@@ -1,5 +1,7 @@
 import { createHmac } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
+import { defaultPaymentProvider } from '../src/app.js';
+import { loadConfig } from '../src/config.js';
 import { orderRef } from '../src/lib/crypto.js';
 import { moderationFlags } from '../src/lib/moderation.js';
 import { PaystackProvider } from '../src/lib/payments/provider.js';
@@ -116,5 +118,31 @@ describe('message templates', () => {
       ).toBeGreaterThan(10);
     expect(renderTemplate('order_paid', { ref: 'SH-1', totalKobo: 12_500_000 })).toContain('₦125,000');
     expect(() => renderTemplate('nope', {})).toThrow();
+  });
+});
+
+describe('development shortcuts are opt-in and refused in staging and production', () => {
+  const base = { DATABASE_URL: 'postgres://x@localhost/x' };
+
+  it('refuses DEV_TOOLS in production', () => {
+    expect(() =>
+      loadConfig({ ...base, NODE_ENV: 'production', PAYSTACK_SECRET_KEY: 'sk_test_x', DEV_TOOLS: 'true' }),
+    ).toThrow(/DEV_TOOLS must be false/);
+  });
+
+  it('refuses DEV_TOOLS when APP_ENV is staging', () => {
+    expect(() =>
+      loadConfig({ ...base, NODE_ENV: 'development', APP_ENV: 'staging', DEV_TOOLS: 'true' }),
+    ).toThrow(/DEV_TOOLS must be false/);
+  });
+
+  it('defaults DEV_TOOLS to off and allows it locally', () => {
+    expect(loadConfig(base).DEV_TOOLS).toBe(false);
+    expect(loadConfig({ ...base, DEV_TOOLS: 'true' }).DEV_TOOLS).toBe(true);
+  });
+
+  it('has no payment provider without a Paystack key unless DEV_TOOLS is on', () => {
+    expect(() => defaultPaymentProvider(loadConfig(base))).toThrow(/PAYSTACK_SECRET_KEY/);
+    expect(defaultPaymentProvider(loadConfig({ ...base, DEV_TOOLS: 'true' })).name).toBe('dev');
   });
 });

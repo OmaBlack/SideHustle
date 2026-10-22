@@ -2,6 +2,13 @@ import { z } from 'zod';
 
 const Env = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  /** Deployment tier. Staging and production refuse DEV_TOOLS. */
+  APP_ENV: z.enum(['local', 'ci', 'staging', 'production']).default('local'),
+  /** Local-only shortcuts: echo OTP codes and email links, enable the dev payment provider. */
+  DEV_TOOLS: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
   PORT: z.coerce.number().int().default(4000),
   HOST: z.string().default('0.0.0.0'),
   DATABASE_URL: z.string().url(),
@@ -37,6 +44,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   if (parsed.data.NODE_ENV === 'production' && !parsed.data.PAYSTACK_SECRET_KEY) {
     throw new Error('Invalid environment: PAYSTACK_SECRET_KEY is required in production');
+  }
+  if (
+    parsed.data.DEV_TOOLS &&
+    (parsed.data.NODE_ENV === 'production' || ['staging', 'production'].includes(parsed.data.APP_ENV))
+  ) {
+    throw new Error('Invalid environment: DEV_TOOLS must be false in production and staging');
   }
   return parsed.data;
 }

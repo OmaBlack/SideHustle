@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
+import { DevProvider } from '../src/lib/payments/provider.js';
 import { Client, DATABASE_URL, REDIS_URL, hasServices, newBuyer, setup, type Env } from './helpers.js';
 
 describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
@@ -131,6 +132,33 @@ describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
       expect(last!.statusCode).toBe(429);
       expect(last!.headers['content-type']).toContain('application/problem+json');
       expect(last!.json().code).toBe('RATE_LIMITED');
+    } finally {
+      await app.close();
+      await env.redis.flushdb();
+    }
+  });
+
+  it('returns no reset token or codes when DEV_TOOLS is off', async () => {
+    const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, WEB_ORIGIN: 'http://web.test' });
+    expect(config.DEV_TOOLS).toBe(false);
+    const app = await buildApp({
+      config,
+      db: env.db,
+      redis: env.redis,
+      payments: new DevProvider(config.WEB_ORIGIN),
+    });
+    await app.ready();
+    try {
+      const b = newBuyer();
+      await env.redis.flushdb();
+      await new Client(env).post('/auth/signup', b);
+      const res = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/password-reset',
+        payload: { email: b.email },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.json().devToken).toBeUndefined();
     } finally {
       await app.close();
       await env.redis.flushdb();

@@ -31,14 +31,15 @@ export interface Deps {
   config: Config;
   db: Database;
   redis: Redis;
-  /** Paystack when a secret key is set, otherwise the dev provider (refused in production by loadConfig). */
+  /** Paystack when a secret key is set, otherwise the dev provider (only with DEV_TOOLS, which loadConfig refuses in production and staging). */
   payments: PaymentProvider;
 }
 
 export function defaultPaymentProvider(config: Config): PaymentProvider {
-  return config.PAYSTACK_SECRET_KEY
-    ? new PaystackProvider(config.PAYSTACK_SECRET_KEY, `${config.WEB_ORIGIN}/orders`)
-    : new DevProvider(config.WEB_ORIGIN);
+  if (config.PAYSTACK_SECRET_KEY)
+    return new PaystackProvider(config.PAYSTACK_SECRET_KEY, `${config.WEB_ORIGIN}/orders`);
+  if (!config.DEV_TOOLS) throw new Error('Set PAYSTACK_SECRET_KEY, or DEV_TOOLS=true for local development');
+  return new DevProvider(config.WEB_ORIGIN);
 }
 
 declare module 'fastify' {

@@ -25,7 +25,13 @@ export async function setup() {
   await applySeed(conn.db, buildSeed());
   const redis = new Redis(REDIS_URL!);
   await redis.flushdb();
-  const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, WEB_ORIGIN: 'http://web.test' });
+  const config = loadConfig({
+    NODE_ENV: 'test',
+    DEV_TOOLS: 'true',
+    DATABASE_URL,
+    REDIS_URL,
+    WEB_ORIGIN: 'http://web.test',
+  });
   const payments = new DevProvider(config.WEB_ORIGIN);
   const app = await buildApp({ config, db: conn.db, redis, payments });
   await app.ready();

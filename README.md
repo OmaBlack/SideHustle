@@ -17,7 +17,7 @@ pnpm db:seed:demo             # admin@, vendor@ (Luxe Leather Label) and buyer@s
 pnpm dev                      # API :4000, worker, web :3000
 ```
 
-With no `PAYSTACK_SECRET_KEY`, checkout uses the **dev payment provider**: "Pay" opens `/pay/dev/<ref>`, whose button runs the same server-side payment path a verified Paystack webhook would. One-time codes and email links are shown on the verify page in development, since SMS and email providers are not connected yet.
+`DEV_TOOLS=true` (set in `.env.example`) is local only: it echoes OTP codes and email links and enables the dev payment page, and the API refuses it in staging and production. With no `PAYSTACK_SECRET_KEY`, checkout uses the **dev payment provider**: "Pay" opens `/pay/dev/<ref>`, whose button runs the same server-side payment path a verified Paystack webhook would. One-time codes and email links are shown on the verify page in development, since SMS and email providers are not connected yet.
 
 - API health: http://localhost:4000/v1/health, OpenAPI: http://localhost:4000/v1/openapi.json
 - Component styleguide: http://localhost:3000/styleguide

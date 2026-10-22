@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { HttpProblem } from '../../errors.js';
+import { requireUser } from '../../lib/auth.js';
 import { DevProvider } from '../../lib/payments/provider.js';
 import { forbidden } from '../../lib/problems.js';
 import { processPaymentSuccess } from './service.js';
@@ -45,9 +46,11 @@ export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
     '/payments/dev/:ref/complete',
     { schema: { tags: ['payments'], params: z.object({ ref: z.string().max(20) }) } },
     async (req) => {
-      if (!(payments instanceof DevProvider) || app.deps.config.NODE_ENV === 'production') throw forbidden();
+      if (!(payments instanceof DevProvider) || !app.deps.config.DEV_TOOLS) throw forbidden();
+      const u = requireUser(req);
       const [o] = await db.select().from(schema.orders).where(eq(schema.orders.ref, req.params.ref));
       if (!o) throw new HttpProblem(404, 'NOT_FOUND', 'Order not found');
+      if (o.buyerId !== u.id) throw forbidden();
       payments.paid.set(o.ref, o.totalKobo);
       return {
         outcome: await processPaymentSuccess(db, payments, {

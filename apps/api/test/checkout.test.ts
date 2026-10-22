@@ -265,6 +265,16 @@ describe.skipIf(!hasServices)('checkout, orders and payments (FR-CHK, FR-ORD, AC
     expect(after.lines[0].name).not.toBe('Renamed');
   });
 
+  it('lets only the order buyer use the dev payment shortcut', async () => {
+    const a = await verifiedBuyer(env);
+    await a.client.post('/cart/lines', { kind: 'kit', kitId: ids.kit('snack') });
+    const { order } = await checkout(a.client);
+    const b = await verifiedBuyer(env);
+    expect((await b.client.post(`/payments/dev/${order.ref}/complete`)).status).toBe(403);
+    expect((await new Client(env).post(`/payments/dev/${order.ref}/complete`)).status).toBe(401);
+    expect(await pay(a.client, order.ref)).toBe('paid');
+  });
+
   it('keeps orders private to their buyer', async () => {
     const a = await verifiedBuyer(env);
     await a.client.post('/cart/lines', { kind: 'kit', kitId: ids.kit('snack') });

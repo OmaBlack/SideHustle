@@ -6,6 +6,7 @@ import type { Database } from '@sidehustle/db';
 import type { Redis } from 'ioredis';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
+import { DevProvider } from './lib/payments/provider.js';
 
 const config = loadConfig({
   ...process.env,
@@ -13,7 +14,12 @@ const config = loadConfig({
   DATABASE_URL: 'postgres://unused@localhost/unused',
   APP_VERSION: '0.0.0',
 });
-const app = await buildApp({ config, db: {} as Database, redis: {} as Redis });
+const app = await buildApp({
+  config,
+  db: {} as Database,
+  redis: {} as Redis,
+  payments: new DevProvider(config.WEB_ORIGIN),
+});
 await app.ready();
 process.stdout.write(JSON.stringify(app.swagger(), null, 2) + '\n');
 await app.close();

@@ -26,7 +26,7 @@ const POLICY_VERSION = '2026-10';
 export const identityRoutes: FastifyPluginAsyncZod = async (app) => {
   const { db, redis } = app.deps;
   // Codes are echoed back only when no real SMS/email provider is wired, so local testing works (never in production).
-  const echoCodes = app.deps.config.NODE_ENV !== 'production';
+  const echoCodes = app.deps.config.DEV_TOOLS;
 
   const me = (userId: string) => loadMe(db, userId);
 
