@@ -18,11 +18,23 @@ const Env = z.object({
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
   /** Paystack test or live secret. Empty = the dev payment provider (never in production). */
   PAYSTACK_SECRET_KEY: z.string().default(''),
-  /** True when the API sits behind the web proxy or a CDN, so rate limits see the client IP. */
+  /**
+   * Which peers may set X-Forwarded-For. `false` (default) trusts none; `true` trusts every hop (only safe when the
+   * API is unreachable except through the proxy); otherwise a comma-separated list of IPs/CIDRs of the web tier,
+   * e.g. `10.0.0.0/8`, so a spoofed header from anyone else is ignored and rate limits see the real client IP.
+   */
   TRUST_PROXY: z
-    .enum(['true', 'false'])
+    .string()
     .default('false')
-    .transform((v) => v === 'true'),
+    .transform((v): boolean | string[] => {
+      const t = v.trim();
+      if (t === '' || t === 'false') return false;
+      if (t === 'true') return true;
+      return t
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean);
+    }),
   RATE_LIMIT_SCALE: z.coerce.number().int().min(1).default(1),
   /** Off only for local http development; production always sets Secure cookies. */
   COOKIE_SECURE: z

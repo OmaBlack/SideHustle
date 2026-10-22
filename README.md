@@ -115,7 +115,7 @@ These were not settled by the plan or SRS; each is easy to change.
 - **Logged-out add to cart** keeps the line in sessionStorage and merges it after login; logged-out builder drafts also live in sessionStorage (plan section 9).
 - **Search** uses `ILIKE` over the four fields; Postgres full-text and trigram indexes (plan 1.3) can replace it when the catalogue grows.
 - **Catalogue pages** render on the server per request with a 30-second fetch cache rather than ISR with tag revalidation, so `next build` never needs the API.
-- **API proxy**: the web app forwards `/v1/*` to `API_ORIGIN` from a route handler, read at request time, so one build runs anywhere. Set `TRUST_PROXY=true` on the API behind it.
+- **API proxy**: the web app forwards `/v1/*` to `API_ORIGIN` from a route handler, read at request time, so one build runs anywhere. The client IP the API rate-limits on comes from `CLIENT_IP_HEADER` (default `xff-last`, the last `X-Forwarded-For` entry, which is the one your platform's load balancer appends; or a header the platform overwrites, such as `cf-connecting-ip` or `x-real-ip`). The browser-supplied chain is never forwarded. On the API set `TRUST_PROXY` to the web service's private address range as a comma-separated IP/CIDR list (for example `TRUST_PROXY=10.0.0.0/8`) rather than `true`, and keep the API off the public internet; `false` (the default) ignores `X-Forwarded-For` entirely.
 - **Licence documents** are recorded by reference (`document_key`); uploads to the private bucket arrive with the storage provider.
 - **The audit log is append-only for every role** (trigger in migration 0003), matching the ledger.
 - **Demo accounts** come from `pnpm db:seed:demo` and are refused in production.

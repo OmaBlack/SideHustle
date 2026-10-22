@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server';
+import { clientIp } from '@/lib/client-ip';
 
 /**
  * Same-origin proxy to the API, so session cookies stay first-party and
@@ -24,7 +25,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     const v = req.headers.get(h);
     if (v) headers.set(h, v);
   }
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip');
+  const ip = clientIp(req.headers, process.env.CLIENT_IP_HEADER);
   if (ip) headers.set('x-forwarded-for', ip);
   const hasBody = !['GET', 'HEAD'].includes(req.method);
   const res = await fetch(url, {

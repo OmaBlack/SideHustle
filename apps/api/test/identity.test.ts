@@ -156,6 +156,39 @@ describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
     expect(last).toBe(429);
   });
 
+  it('keys rate limits on the real peer, not a spoofed X-Forwarded-For, when TRUST_PROXY is a CIDR list', async () => {
+    await env.redis.flushdb();
+    const config = loadConfig({
+      NODE_ENV: 'test',
+      DATABASE_URL,
+      REDIS_URL,
+      WEB_ORIGIN: 'http://web.test',
+      TRUST_PROXY: '10.0.0.0/8',
+    });
+    expect(config.TRUST_PROXY).toEqual(['10.0.0.0/8']);
+    const app = await buildApp({ config, db: env.db, redis: env.redis, payments: env.payments });
+    await app.ready();
+    try {
+      const statuses: number[] = [];
+      for (let i = 0; i < 11; i++) {
+        // Direct peer 203.0.113.5 is outside the trusted range, so the rotating header must be ignored.
+        const res = await app.inject({
+          method: 'POST',
+          url: '/v1/auth/login',
+          remoteAddress: '203.0.113.5',
+          headers: { 'x-forwarded-for': `198.51.100.${i + 1}` },
+          payload: { email: 'spoof@example.com', password: 'x' },
+        });
+        statuses.push(res.statusCode);
+      }
+      expect(statuses[10]).toBe(429);
+      expect(await env.redis.exists('rl:login:203.0.113.5:spoof@example.com')).toBe(1);
+    } finally {
+      await app.close();
+      await env.redis.flushdb();
+    }
+  });
+
   it('applies a global per-IP ceiling to every route (NFR-SEC-04)', async () => {
     await env.redis.flushdb();
     const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, WEB_ORIGIN: 'http://web.test' });
