@@ -1,5 +1,5 @@
 {
-  "id": "47a77e0a-82ad-463b-9e82-b2b1982d2bda",
+  "id": "4c8f9f20-0ccf-4f65-ad0b-0b435293529d",
   "prevId": "879a87dd-6e07-428c-a210-12a555300bdf",
   "version": "7",
   "dialect": "postgresql",
@@ -3300,6 +3300,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "discount_funded_by": {
+          "name": "discount_funded_by",
+          "type": "funded_by",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
         },
         "options_snapshot": {
           "name": "options_snapshot",

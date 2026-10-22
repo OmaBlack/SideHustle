@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import cookie from '@fastify/cookie';
 import swagger from '@fastify/swagger';
 import type { Database } from '@sidehustle/db';
 import Fastify from 'fastify';
@@ -11,12 +12,31 @@ import {
 import type { Redis } from 'ioredis';
 import type { Config } from './config.js';
 import { registerErrorHandler } from './errors.js';
+import { registerAuth } from './lib/auth.js';
+import { DevProvider, PaystackProvider, type PaymentProvider } from './lib/payments/provider.js';
+import { accountRoutes } from './modules/account/routes.js';
+import { adminRoutes } from './modules/admin/routes.js';
+import { cartRoutes } from './modules/cart/routes.js';
+import { catalogueRoutes } from './modules/catalogue/routes.js';
+import { checkoutRoutes } from './modules/checkout/routes.js';
 import { healthRoutes } from './modules/health/routes.js';
+import { identityRoutes } from './modules/identity/routes.js';
+import { paymentRoutes } from './modules/payments/routes.js';
+import { requestRoutes } from './modules/requests/routes.js';
+import { vendorRoutes } from './modules/vendor/routes.js';
 
 export interface Deps {
   config: Config;
   db: Database;
   redis: Redis;
+  /** Paystack when a secret key is set, otherwise the dev provider (refused in production by loadConfig). */
+  payments: PaymentProvider;
+}
+
+export function defaultPaymentProvider(config: Config): PaymentProvider {
+  return config.PAYSTACK_SECRET_KEY
+    ? new PaystackProvider(config.PAYSTACK_SECRET_KEY, `${config.WEB_ORIGIN}/orders`)
+    : new DevProvider(config.WEB_ORIGIN);
 }
 
 declare module 'fastify' {
@@ -27,7 +47,8 @@ declare module 'fastify' {
 
 const REQUEST_ID = /^[A-Za-z0-9._-]{1,128}$/;
 
-export async function buildApp(deps: Deps) {
+export async function buildApp(input: Omit<Deps, 'payments'> & { payments?: PaymentProvider }) {
+  const deps: Deps = { ...input, payments: input.payments ?? defaultPaymentProvider(input.config) };
   const app = Fastify({
     logger:
       deps.config.NODE_ENV === 'test'
@@ -48,6 +69,8 @@ export async function buildApp(deps: Deps) {
     reply.header('x-request-id', req.id);
   });
   registerErrorHandler(app);
+  await app.register(cookie);
+  registerAuth(app);
 
   await app.register(swagger, {
     openapi: {
@@ -61,6 +84,15 @@ export async function buildApp(deps: Deps) {
   await app.register(
     async (v1) => {
       await v1.register(healthRoutes);
+      await v1.register(identityRoutes);
+      await v1.register(accountRoutes);
+      await v1.register(catalogueRoutes);
+      await v1.register(cartRoutes);
+      await v1.register(checkoutRoutes);
+      await v1.register(paymentRoutes);
+      await v1.register(requestRoutes);
+      await v1.register(vendorRoutes);
+      await v1.register(adminRoutes);
       v1.get('/openapi.json', { schema: { hide: true } }, async () => app.swagger());
     },
     { prefix: '/v1' },

@@ -16,7 +16,11 @@
       "outputs": ["coverage/**"]
     },
     "lint": {},
-    "typecheck": {}
+    "typecheck": {},
+    "@sidehustle/api#test": {
+      "dependsOn": ["@sidehustle/db#test"],
+      "outputs": []
+    }
   },
   "globalPassThroughEnv": [
     "CI",

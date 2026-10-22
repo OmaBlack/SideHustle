@@ -234,8 +234,10 @@ export const orderLines = pgTable(
     nameSnapshot: text().notNull(),
     unitPriceKobo: kobo().notNull(),
     qty: integer().notNull(),
-    /** This line's share of a bundle discount, split by largest remainder (rule 8). */
+    /** This line's share of a bundle discount or kit price gap, split by largest remainder (rule 8). */
     discountKobo: kobo().notNull().default(0),
+    /** Who absorbs discountKobo (plan section 8a): vendors for kit gaps by default, the platform for bundles. */
+    discountFundedBy: fundedBy(),
     optionsSnapshot: jsonb(),
     note: text(),
     ...timestamps,
