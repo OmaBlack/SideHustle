@@ -3,7 +3,9 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
+import { DevNotifier } from '../src/lib/notifier.js';
 import { DevProvider } from '../src/lib/payments/provider.js';
+import { drainOutbox } from '../src/modules/notifications/service.js';
 import { Client, DATABASE_URL, REDIS_URL, hasServices, newBuyer, setup, type Env } from './helpers.js';
 
 describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
@@ -88,6 +90,39 @@ describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
     expect((await new Client(env).post('/auth/verify-email', { token: email.body.devToken })).status).toBe(
       400,
     );
+  });
+
+  it('keeps OTP codes and email-link tokens out of the outbox and notifications once sent', async () => {
+    const b = newBuyer();
+    const c = new Client(env);
+    const signup = await c.post('/auth/signup', b);
+    const userId = signup.body.user.id as string;
+    const otp = await c.post('/me/verify/phone/send');
+    const reset = await new Client(env).post('/auth/password-reset', { email: b.email });
+    const code = otp.body.devCode as string;
+    const token = reset.body.devToken as string;
+    const notifier = new DevNotifier();
+    await drainOutbox(env.db, notifier);
+    expect(notifier.sent.some((m) => m.template === 'otp' && m.text.includes(code))).toBe(true);
+    expect(notifier.sent.some((m) => m.template === 'password_reset' && m.text.includes(token))).toBe(true);
+    const rows = (await env.db.select().from(schema.outbox)).filter(
+      (r) => (r.payload as { to: string }).to === userId,
+    );
+    const resetRow = rows.find((r) => (r.payload as { template: string }).template === 'password_reset');
+    const otpRow = rows.find((r) => (r.payload as { template: string }).template === 'otp');
+    expect(resetRow?.sentAt).not.toBeNull();
+    expect((resetRow!.payload as { data: { link: string } }).data.link).toBe('[redacted]');
+    expect((otpRow!.payload as { data: { code: string } }).data.code).toBe('[redacted]');
+    const notes = await env.db
+      .select()
+      .from(schema.notifications)
+      .where(eq(schema.notifications.userId, userId));
+    expect(notes.length).toBeGreaterThanOrEqual(2);
+    for (const row of [...rows, ...notes]) {
+      const json = JSON.stringify(row);
+      expect(json.includes(token)).toBe(false);
+      expect(json.includes(`"${code}"`)).toBe(false);
+    }
   });
 
   it('resets a password by email link and signs out every device', async () => {

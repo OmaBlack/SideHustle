@@ -1,5 +1,5 @@
 import { schema, type Database } from '@sidehustle/db';
-import { and, asc, eq, gt, inArray, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, inArray, isNull, lt, sql } from 'drizzle-orm';
 import type { Notifier } from '../../lib/notifier.js';
 import type { NotifyPayload } from '../../lib/outbox.js';
 import { enqueue } from '../../lib/outbox.js';
@@ -10,11 +10,44 @@ import { processPaymentSuccess } from '../payments/service.js';
 const MAX_ATTEMPTS = 8;
 
 /**
+ * Data fields that carry one-time secrets (OTP codes, email/reset links with
+ * raw tokens). They are replaced once a message is sent or given up on.
+ * Any new template carrying a secret must add its field here.
+ */
+const SECRET_FIELDS = ['code', 'link'] as const;
+const SECRET_TEMPLATES = ['otp', 'verify_email', 'password_reset'];
+
+function redactData(data: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...data };
+  for (const f of SECRET_FIELDS) if (f in out) out[f] = '[redacted]';
+  return out;
+}
+
+function redactPayload(p: NotifyPayload): NotifyPayload {
+  return { ...p, data: redactData(p.data) };
+}
+
+/**
  * Sends queued messages (FR-NOT-01/02). Each outbox row becomes one
  * notification per channel, sent through the notifier, and is marked sent;
  * failures retry with backoff on the next run (NFR-REL-04).
  */
 export async function drainOutbox(db: Database, notifier: Notifier, limit = 50): Promise<number> {
+  // Rows that gave up without sending must not keep their secrets at rest.
+  await db
+    .update(schema.outbox)
+    .set({
+      payload: sql`jsonb_set(${schema.outbox.payload}, '{data}', (${schema.outbox.payload}->'data') || ${JSON.stringify(
+        Object.fromEntries(SECRET_FIELDS.map((f) => [f, '[redacted]'])),
+      )}::jsonb)`,
+    })
+    .where(
+      and(
+        isNull(schema.outbox.sentAt),
+        gte(schema.outbox.attempts, MAX_ATTEMPTS),
+        inArray(sql`${schema.outbox.payload}->>'template'`, SECRET_TEMPLATES),
+      ),
+    );
   const rows = await db
     .select()
     .from(schema.outbox)
@@ -54,8 +87,8 @@ export async function drainOutbox(db: Database, notifier: Notifier, limit = 50):
             channel,
             template: p.template,
             status: 'sent',
-            // Never keep one-time codes at rest.
-            payload: { ...p.data, code: undefined },
+            // Never keep one-time codes or links at rest.
+            payload: redactData(p.data),
             providerRef,
             sentAt: new Date(),
           });
@@ -63,7 +96,7 @@ export async function drainOutbox(db: Database, notifier: Notifier, limit = 50):
       }
       await db
         .update(schema.outbox)
-        .set({ sentAt: new Date(), attempts: row.attempts + 1 })
+        .set({ sentAt: new Date(), attempts: row.attempts + 1, payload: redactPayload(p) })
         .where(eq(schema.outbox.id, row.id));
       sent++;
     } catch (err) {
