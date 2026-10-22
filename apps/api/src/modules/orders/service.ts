@@ -242,6 +242,10 @@ export async function transitionFulfilment(
     order.status,
     all.map((x) => x.status),
   );
+  // The last rejection cancels the order: no delivery will happen, so the fee goes back too.
+  if (derived === 'cancelled' && order.status !== 'cancelled' && order.deliveryFeeKobo > 0 && opts.refund)
+    await opts.refund(order.id, order.deliveryFeeKobo);
+  // refund() flips a fully refunded order to 'refunded'; write the derived status after it so it stays 'cancelled'.
   if (derived !== order.status)
     await tx.update(schema.orders).set({ status: derived }).where(eq(schema.orders.id, order.id));
 

@@ -9,6 +9,7 @@ import {
   hasServices,
   ids,
   pay,
+  PICKUP,
   setup,
   staffUser,
   verifiedBuyer,
@@ -142,6 +143,54 @@ describe.skipIf(!hasServices)('vendor portal (FR-VP-01..08, UC-4, UC-6)', () => 
       reason: 'Closed',
     });
     expect((await solo.buyer.client.get(`/orders/${solo.order.ref}`)).body.order.status).toBe('cancelled');
+  });
+
+  it('refunds the delivery fee when the last fulfilment is rejected, but not on a partial rejection', async () => {
+    await env.db.update(schema.products).set({ stockQty: 200 }).where(eq(schema.products.slug, 'chinchin'));
+    const mamatee = await staffUser(env, { role: 'vendor_staff', vendorSlug: 'mamatee' });
+    const lagos = {
+      ...PICKUP,
+      deliveryMethod: 'lagos',
+      address: { line1: '1 Broad St', city: 'Ikeja', state: 'Lagos' },
+    };
+    const refundsFor = async (orderId: string) =>
+      env.db
+        .select({ amountKobo: schema.refunds.amountKobo })
+        .from(schema.refunds)
+        .innerJoin(schema.payments, eq(schema.payments.id, schema.refunds.paymentId))
+        .where(eq(schema.payments.orderId, orderId));
+    const buyOrder = async (lines: unknown[]) => {
+      const buyer = await verifiedBuyer(env);
+      for (const l of lines) await buyer.client.post('/cart/lines', l);
+      const { order } = await checkout(buyer.client, lagos);
+      await pay(buyer.client, order.ref);
+      return { buyer, order: (await buyer.client.get(`/orders/${order.ref}`)).body.order };
+    };
+
+    const solo = await buyOrder([{ kind: 'product', productId: ids.product('chinchin'), qty: 40 }]);
+    expect(solo.order.deliveryFeeKobo).toBe(350_000);
+    await mamatee.client.post(`/vendor/fulfilments/${solo.order.fulfilments[0].id}/reject`, {
+      reason: 'Closed',
+    });
+    expect((await solo.buyer.client.get(`/orders/${solo.order.ref}`)).body.order.status).toBe('cancelled');
+    const sum = (rs: { amountKobo: number }[]) => rs.reduce((a, r) => a + r.amountKobo, 0);
+    expect(sum(await refundsFor(solo.order.id))).toBe(40 * 110_000 + 350_000);
+
+    const two = await buyOrder([
+      { kind: 'product', productId: ids.product('chinchin'), qty: 40 },
+      { kind: 'product', productId: ids.product('cable'), qty: 50 },
+    ]);
+    const snack = two.order.fulfilments.find(
+      (f: { vendor: { slug: string } }) => f.vendor.slug === 'mamatee',
+    );
+    await mamatee.client.post(`/vendor/fulfilments/${snack.id}/reject`, { reason: 'Out of flour' });
+    expect((await two.buyer.client.get(`/orders/${two.order.ref}`)).body.order.status).toBe('paid');
+    expect(sum(await refundsFor(two.order.id))).toBe(40 * 110_000);
+
+    const rows = await env.db.execute<{ s: string }>(
+      sql`select sum(amount_kobo) as s from ledger_entries group by journal_id`,
+    );
+    expect(Array.from(rows).every((r) => Number(r.s) === 0)).toBe(true);
   });
 
   it('posts promos for own products only, validates headlines and holds contact details (UC-4, AC-10)', async () => {
