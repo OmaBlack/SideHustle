@@ -544,20 +544,30 @@ describe.skipIf(!hasServices)('admin console (FR-ADM-01..11) and worker jobs', (
         })
       ).status,
     ).toBe(201);
+    // Retention rows are seeded per data type; a second row for the same type is a conflict, an edit is fine.
+    const dup = await admin.client.post('/admin/retention', {
+      dataType: 'orders',
+      retainDays: 2190,
+      action: 'archive',
+    });
+    expect(dup.status).toBe(409);
+    const ordersRow = (await admin.client.get('/admin/retention')).body.items.find(
+      (r: { dataType: string }) => r.dataType === 'orders',
+    );
     expect(
       (
-        await admin.client.post('/admin/retention', {
+        await admin.client.put(`/admin/retention/${ordersRow.id}`, {
           dataType: 'orders',
-          retainDays: 2190,
+          retainDays: 2555,
           action: 'archive',
         })
       ).status,
-    ).toBe(201);
+    ).toBe(200);
     const actions = (await admin.client.get('/admin/audit-log')).body.entries.map(
       (e: { action: string }) => e.action,
     );
     expect(actions).toEqual(
-      expect.arrayContaining(['config.update', 'commission_rule.create', 'retention_policy.create']),
+      expect.arrayContaining(['config.update', 'commission_rule.create', 'retention_policy.update']),
     );
   });
 

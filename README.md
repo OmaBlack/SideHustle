@@ -120,3 +120,4 @@ These were not settled by the plan or SRS; each is easy to change.
 - **The audit log is append-only for every role** (trigger in migration 0003), matching the ledger.
 - **Demo accounts** come from `pnpm db:seed:demo` and are refused in production.
 - **Advisor fixes 002 and 003** (kit pricing when a component is unavailable; own-property option lookup) were cherry-picked from the local `advisor/*` branches because the flows depend on them. The other advisor branches are not included.
+- **NDPA**: the code side is mapped in `docs/ndpa-compliance.md`, with a breach runbook in `docs/breach-runbook.md`. Erasure is immediate (not a queued job) and keeps finished orders for the 6-year retention period without the account identity; retention periods are placeholders until SRS §11 item 7 is settled with counsel.

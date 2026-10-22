@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FormError, TextField, useSubmit } from '@/components/forms';
 import { Banner, Card, Page, Section } from '@/components/Page';
+import { PrivacyActions } from '@/components/PrivacyActions';
 import { api, del, post, put } from '@/lib/api';
 import { useRequireLogin } from '@/lib/session';
 import type { Me } from '@/lib/types';
@@ -179,7 +180,6 @@ export default function AccountPage() {
               ))}
             </div>
           </fieldset>
-          <p className="text-[12.5px] text-muted">{t('phoneEmailFixed', { phone: a.user.phone })}</p>
           <FormError error={save.error} />
           <Button type="submit" disabled={save.busy}>
             {t('save')}
@@ -273,29 +273,7 @@ export default function AccountPage() {
             />
             {t('marketing')}
           </label>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="ghost"
-              onClick={async () => {
-                await post('/me/data-requests', { kind: 'export' });
-                await qc.invalidateQueries({ queryKey: ['account'] });
-                toast(t('exportRequested'));
-              }}
-            >
-              {t('export')}
-            </Button>
-            <Button
-              variant="danger"
-              onClick={async () => {
-                if (!window.confirm(t('deleteConfirm'))) return;
-                await post('/me/data-requests', { kind: 'delete' });
-                await qc.invalidateQueries({ queryKey: ['account'] });
-                toast(t('deleteRequested'));
-              }}
-            >
-              {t('delete')}
-            </Button>
-          </div>
+          <PrivacyActions email={a.user.email} phone={a.user.phone} />
           {a.dataRequests.length > 0 && (
             <ul className="text-[13px] text-muted">
               {a.dataRequests.map((r) => (

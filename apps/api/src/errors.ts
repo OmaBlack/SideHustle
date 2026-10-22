@@ -32,6 +32,8 @@ export function registerErrorHandler(app: FastifyInstance) {
       };
       const retryAfter = (err as { retryAfter?: number }).retryAfter;
       if (retryAfter) reply.header('retry-after', String(retryAfter));
+    } else if (uniqueViolation(err)) {
+      problem = { type: 'about:blank', status: 409, code: 'ALREADY_EXISTS', title: 'That already exists' };
     } else if (err instanceof PricingError) {
       problem = {
         type: 'about:blank',
@@ -87,4 +89,10 @@ export function registerErrorHandler(app: FastifyInstance) {
       .type('application/problem+json')
       .send({ type: 'about:blank', status: 404, code: 'NOT_FOUND', title: 'Not found', instance: req.id });
   });
+}
+
+/** Postgres unique_violation (23505), possibly wrapped by drizzle in `cause`. */
+function uniqueViolation(err: unknown): boolean {
+  const e = err as { code?: unknown; cause?: { code?: unknown } };
+  return e?.code === '23505' || e?.cause?.code === '23505';
 }

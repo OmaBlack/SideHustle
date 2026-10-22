@@ -454,7 +454,8 @@
     "marketing": "Send me tips and deals",
     "marketingHint": "Optional. You can turn this off any time.",
     "createAccount": "Create account",
-    "haveAccount": "Already have an account?"
+    "haveAccount": "Already have an account?",
+    "ageConfirm": "I am 18 or older"
   },
   "interests": {
     "beauty": "Beauty & Skincare",
@@ -504,7 +505,6 @@
     "state": "State",
     "statePlaceholder": "Choose a state",
     "interests": "Selling interests",
-    "phoneEmailFixed": "Phone {phone} and email are your login; contact support to change them.",
     "save": "Save changes",
     "saved": "Saved",
     "requests": "Custom requests",
@@ -517,13 +517,10 @@
     "privacy": "Privacy and your data",
     "marketing": "Send me tips and deals",
     "export": "Download my data",
-    "exportRequested": "We'll email you when your data is ready.",
     "delete": "Delete my account",
-    "deleteConfirm": "Delete your account? Orders we must keep by law stay, everything else is removed.",
-    "deleteRequested": "Deletion requested. We'll confirm by email.",
     "dataRequest": "{kind} requested {when}: {status}",
     "kind": {
-      "export": "Data export",
+      "export": "Data download",
       "delete": "Account deletion"
     },
     "jobStatus": {
@@ -531,30 +528,57 @@
       "processing": "in progress",
       "done": "done",
       "failed": "failed"
-    }
+    },
+    "exportHint": "A file with your profile, orders, requests, consents and sign-ins, ready immediately.",
+    "changeContact": "Change email or phone",
+    "changeContactHint": "Now {email} and {phone}. A new email or phone must be confirmed again before your next order.",
+    "newEmail": "New email (optional)",
+    "newPhone": "New phone (optional)",
+    "currentPassword": "Your password",
+    "saveContact": "Save contact details",
+    "deleteExplain": "This removes your profile, saved kits, cart, sign-ins and messages straight away, and you cannot undo it. Orders are kept for 6 years because accounting and tax law require it, without your name on the account. You can't delete while an order is still in progress.",
+    "deleteForever": "Delete my account forever",
+    "cancel": "Cancel"
   },
   "privacy": {
     "title": "Privacy notice",
-    "draft": "Draft for the Lagos pilot; the final notice follows legal review under the Nigeria Data Protection Act 2023.",
+    "updated": "Version 2026-10. This notice explains how SideHustle handles personal data under the Nigeria Data Protection Act 2023 (NDPA).",
+    "draft": "Draft for the Lagos pilot. Items in [brackets] must be filled in, and the notice reviewed by a lawyer, before launch.",
+    "who": {
+      "title": "Who we are",
+      "body": "SideHustle Marketplace is operated by [company legal name, RC number, registered address], the data controller. Contact our Data Protection Officer at [dpo@ email address]."
+    },
     "collect": {
       "title": "What we collect",
-      "body": "Your name, business name, phone, email, state, delivery addresses and what you buy. Card details go to our payment provider and never touch our servers."
+      "body": "Your name, business name, phone number, email, state and selling interests; delivery addresses and recipient details; what you order and pay; custom requests you send; sign-in records (device and IP address). For vendors: business details, staff contacts and licence documents. Card details are entered on Paystack's page and never reach our servers."
     },
     "use": {
-      "title": "Why",
-      "body": "To run your account, deliver orders, send order updates, and, only if you agree, tips and deals."
+      "title": "Why we use it and our lawful basis",
+      "body": "To create and run your account and deliver your orders (performing our contract with you); to verify your phone and email and prevent fraud (legitimate interests); to keep order, payment and tax records (legal obligation); and to send tips and deals only if you opt in (consent, which you can withdraw at any time from your account page)."
     },
     "share": {
-      "title": "Who sees it",
-      "body": "Vendors see what they need to ship your order. Payment and SMS providers process data for us. We do not sell your data."
+      "title": "Who we share it with",
+      "body": "Vendors receive the name, phone and address they need to ship your order. Our processors help us run the service: Paystack (payments), our SMS and email providers, our hosting and storage providers, and logistics partners. Each acts on our instructions under a written agreement. We do not sell personal data."
+    },
+    "transfer": {
+      "title": "Data leaving Nigeria",
+      "body": "Some processors store data outside Nigeria, [list providers and countries]. We only transfer data where the NDPA allows it, for example to a country with adequate protection or under contractual safeguards approved by the NDPC."
     },
     "keep": {
-      "title": "How long",
-      "body": "Order and payment records are kept for the period the law requires. Other data is deleted when you close your account."
+      "title": "How long we keep it",
+      "body": "Order and payment records: 6 years, as accounting and tax law requires; after that the delivery details are removed. Sign-in records: 90 days after they end. Message logs: 1 year. Codes and email links: 30 days. Custom request text: 2 years. When you delete your account, everything else is removed straight away."
     },
     "rights": {
       "title": "Your rights",
-      "body": "You can see, correct, download or delete your data from your account page."
+      "body": "You can see and download your data, correct it, delete your account, object to or restrict some uses, withdraw consent, and move your data to another service. Do most of this yourself from your account page, or email [dpo@ email address]; we answer within 30 days. If you are unhappy with how we handle your data, you can complain to the Nigeria Data Protection Commission (ndpc.gov.ng)."
+    },
+    "security": {
+      "title": "Security",
+      "body": "Data is encrypted in transit; passwords are stored with a memory-hard hash; staff access is limited and logged. If a breach puts your rights at risk, we will tell the NDPC within 72 hours and tell you without undue delay."
+    },
+    "children": {
+      "title": "Age",
+      "body": "SideHustle is for adults running a business. You must be 18 or older to open an account."
     }
   },
   "vendorPortal": {

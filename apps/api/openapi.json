@@ -196,6 +196,12 @@
                   "marketing": {
                     "type": "boolean",
                     "default": false
+                  },
+                  "ageConfirmed": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
                   }
                 },
                 "required": [
@@ -204,7 +210,8 @@
                   "email",
                   "state",
                   "password",
-                  "acceptTerms"
+                  "acceptTerms",
+                  "ageConfirmed"
                 ],
                 "additionalProperties": false
               }
@@ -614,41 +621,6 @@
         }
       }
     },
-    "/v1/me/data-requests": {
-      "post": {
-        "tags": [
-          "account"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "kind": {
-                    "type": "string",
-                    "enum": [
-                      "export",
-                      "delete"
-                    ]
-                  }
-                },
-                "required": [
-                  "kind"
-                ],
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Default Response"
-          }
-        }
-      }
-    },
     "/v1/me/bundles": {
       "get": {
         "tags": [
@@ -836,6 +808,90 @@
             "required": true
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/v1/me/data-export": {
+      "get": {
+        "tags": [
+          "privacy"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/v1/me/contact": {
+      "put": {
+        "tags": [
+          "privacy"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/v1/me/delete": {
+      "post": {
+        "tags": [
+          "privacy"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Default Response"
@@ -4004,8 +4060,17 @@
                 "properties": {
                   "dataType": {
                     "type": "string",
-                    "minLength": 2,
-                    "maxLength": 40
+                    "enum": [
+                      "sessions",
+                      "auth_codes",
+                      "outbox",
+                      "notifications",
+                      "checkout_quotes",
+                      "idempotency_keys",
+                      "payment_payloads",
+                      "custom_requests",
+                      "orders"
+                    ]
                   },
                   "retainDays": {
                     "type": "integer",
@@ -4050,8 +4115,17 @@
                 "properties": {
                   "dataType": {
                     "type": "string",
-                    "minLength": 2,
-                    "maxLength": 40
+                    "enum": [
+                      "sessions",
+                      "auth_codes",
+                      "outbox",
+                      "notifications",
+                      "checkout_quotes",
+                      "idempotency_keys",
+                      "payment_payloads",
+                      "custom_requests",
+                      "orders"
+                    ]
                   },
                   "retainDays": {
                     "type": "integer",

@@ -92,31 +92,6 @@ export const accountRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  // FR-ACC-08: export and deletion are queued; the jobs that fulfil them are ticket 3.11.
-  app.post(
-    '/me/data-requests',
-    { schema: { tags: ['account'], body: z.object({ kind: z.enum(['export', 'delete']) }) } },
-    async (req, reply) => {
-      const u = requireUser(req);
-      const [open] = await db
-        .select()
-        .from(schema.dataRequests)
-        .where(
-          and(
-            eq(schema.dataRequests.userId, u.id),
-            eq(schema.dataRequests.kind, req.body.kind),
-            inArray(schema.dataRequests.status, ['pending', 'processing']),
-          ),
-        );
-      if (open) return reply.status(200).send({ request: open });
-      const [row] = await db
-        .insert(schema.dataRequests)
-        .values({ userId: u.id, kind: req.body.kind })
-        .returning();
-      return reply.status(201).send({ request: row });
-    },
-  );
-
   // FR-BLD-05: saved kits store product ids and quantities and are re-priced on load.
   app.get('/me/bundles', { schema: { tags: ['builder'] } }, async (req) => {
     const u = requireUser(req);

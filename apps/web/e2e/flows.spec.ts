@@ -110,6 +110,7 @@ test('an admin approves a vendor application (FR-ADM-01)', async ({ page, browse
       state: 'Oyo',
       password: 'a good long password',
       acceptTerms: true,
+      ageConfirmed: true,
     },
   });
   expect(signup.status()).toBe(201);
@@ -130,4 +131,33 @@ test('an admin approves a vendor application (FR-ADM-01)', async ({ page, browse
   await actx.close();
   await page.goto('/admin/audit');
   await expect(page.getByText('vendor.approve').first()).toBeVisible();
+});
+
+test('a visitor signs up with consent and the 18+ confirmation, then can download and delete their data (NDPA)', async ({
+  page,
+}) => {
+  const stamp = String(Date.now()).slice(-7);
+  await page.goto('/signup');
+  await page.getByLabel('Full name').fill('Ngozi Seller');
+  await page.getByLabel('Phone number').fill(`0807${stamp}`);
+  await page.getByLabel('Email').fill(`ngozi-${stamp}@example.com`);
+  await page.getByLabel('State').selectOption('Enugu');
+  await page.getByLabel('Password').fill('a long enough password');
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await expect(page.getByText('You must be 18 or older to open an account')).toBeVisible();
+  await page.getByLabel(/I agree to the terms/).check();
+  await page.getByLabel('I am 18 or older').check();
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await expect(page).toHaveURL(/\/verify/);
+
+  await page.goto('/account');
+  const download = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Download my data' }).click();
+  expect((await download).suggestedFilename()).toMatch(/^sidehustle-my-data-.*\.json$/);
+
+  await page.getByRole('button', { name: 'Delete my account' }).click();
+  await page.getByLabel('Your password').last().fill('a long enough password');
+  await page.getByRole('button', { name: 'Delete my account forever' }).click();
+  await expect(page).toHaveURL(/\/\?deleted=1/);
+  await expect(page.getByRole('link', { name: 'Log in' }).first()).toBeVisible();
 });

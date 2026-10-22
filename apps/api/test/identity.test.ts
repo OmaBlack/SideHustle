@@ -29,7 +29,7 @@ describe.skipIf(!hasServices)('identity (FR-ACC-01..06)', () => {
     const [u] = await env.db.select().from(schema.users).where(eq(schema.users.email, b.email));
     expect(u!.passwordHash).toMatch(/^\$argon2id\$/);
     const consents = await env.db.select().from(schema.consents).where(eq(schema.consents.userId, u!.id));
-    expect(consents.map((x) => x.purpose).sort()).toEqual(['marketing', 'processing']);
+    expect(consents.map((x) => x.purpose).sort()).toEqual(['age_18_plus', 'marketing', 'processing']);
     expect(c.cookies.has('sh_session')).toBe(true);
     expect((await c.get('/me')).body.user.email).toBe(b.email);
   });

@@ -111,6 +111,7 @@ export function newBuyer(over: Record<string, unknown> = {}) {
     interests: ['beauty'],
     password: 'correct horse battery',
     acceptTerms: true,
+    ageConfirmed: true,
     ...over,
   };
 }

@@ -21,6 +21,7 @@ function Signup() {
   const [interests, setInterests] = useState<string[]>([]);
   const [acceptTerms, setAccept] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  const [ageConfirmed, setAge] = useState(false);
   const { busy, error, fields, run } = useSubmit();
   const bind = (k: keyof typeof f) => ({
     value: f[k],
@@ -34,7 +35,9 @@ function Signup() {
         noValidate
         onSubmit={async (e) => {
           e.preventDefault();
-          if (await run(() => post('/auth/signup', { ...f, interests, acceptTerms, marketing }))) {
+          if (
+            await run(() => post('/auth/signup', { ...f, interests, acceptTerms, ageConfirmed, marketing }))
+          ) {
             await after();
             router.replace(`/verify?next=${encodeURIComponent(next)}`);
           }
@@ -89,6 +92,12 @@ function Signup() {
             </>
           }
         />
+        <Checkbox checked={ageConfirmed} onChange={setAge} label={t('ageConfirm')} />
+        {fields.ageConfirmed && (
+          <p role="alert" className="text-[12.5px] text-danger">
+            {fields.ageConfirmed}
+          </p>
+        )}
         {fields.acceptTerms && (
           <p role="alert" className="text-[12.5px] text-danger">
             {fields.acceptTerms}

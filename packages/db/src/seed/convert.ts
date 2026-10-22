@@ -144,6 +144,27 @@ export function buildSeed(src: RawCatalogue = prototype) {
     { id: seedId('payout', 'default'), vendorId: null, daysAfterDelivery: 3, holdbackBps: 0 },
   ];
 
+  // Starting retention periods (FR-ADM-10). PLACEHOLDERS until SRS §11 item 7 is decided with legal advice;
+  // the admin API refuses anything below each type's minimum (packages/schemas RETENTION_TYPES).
+  const retentionPolicies = (
+    [
+      ['sessions', 90, 'purge'],
+      ['auth_codes', 30, 'purge'],
+      ['outbox', 30, 'purge'],
+      ['notifications', 365, 'purge'],
+      ['checkout_quotes', 30, 'purge'],
+      ['idempotency_keys', 7, 'purge'],
+      ['payment_payloads', 180, 'archive'],
+      ['custom_requests', 730, 'archive'],
+      ['orders', 2190, 'archive'],
+    ] as const
+  ).map(([dataType, retainDays, action]) => ({
+    id: seedId('retention', dataType),
+    dataType,
+    retainDays,
+    action,
+  }));
+
   const appConfig = [
     { key: 'order_expiry_minutes', value: 30 },
     { key: 'quote_ttl_minutes', value: 15 },
@@ -164,6 +185,7 @@ export function buildSeed(src: RawCatalogue = prototype) {
     restrictedItems,
     commissionRules,
     payoutSettings,
+    retentionPolicies,
     appConfig,
   };
 }

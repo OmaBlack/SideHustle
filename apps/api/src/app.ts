@@ -24,6 +24,7 @@ import { checkoutRoutes } from './modules/checkout/routes.js';
 import { healthRoutes } from './modules/health/routes.js';
 import { identityRoutes } from './modules/identity/routes.js';
 import { paymentRoutes } from './modules/payments/routes.js';
+import { privacyRoutes } from './modules/privacy/routes.js';
 import { requestRoutes } from './modules/requests/routes.js';
 import { vendorRoutes } from './modules/vendor/routes.js';
 
@@ -104,6 +105,7 @@ export async function buildApp(input: Omit<Deps, 'payments'> & { payments?: Paym
       await v1.register(healthRoutes);
       await v1.register(identityRoutes);
       await v1.register(accountRoutes);
+      await v1.register(privacyRoutes);
       await v1.register(catalogueRoutes);
       await v1.register(cartRoutes);
       await v1.register(checkoutRoutes);

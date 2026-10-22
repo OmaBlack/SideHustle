@@ -6,6 +6,7 @@ import { audit } from '../../lib/audit.js';
 import { enqueue } from '../../lib/outbox.js';
 import { conflict } from '../../lib/problems.js';
 import { reReserve } from '../orders/service.js';
+import { minimalPaymentPayload } from '../privacy/service.js';
 
 /**
  * Commission on what each vendor is actually paid (plan section 8a), from the
@@ -303,14 +304,19 @@ export async function processPaymentSuccess(
     if (evt.amountKobo !== order.totalKobo || evt.currency !== 'NGN') {
       await tx
         .update(schema.payments)
-        .set({ rawPayload: evt.raw ?? null })
+        .set({ rawPayload: minimalPaymentPayload(evt.raw) })
         .where(eq(schema.payments.id, payment.id));
       return 'mismatch';
     }
     const now = new Date();
     await tx
       .update(schema.payments)
-      .set({ status: 'success', paidAt: now, channel: evt.channel ?? null, rawPayload: evt.raw ?? null })
+      .set({
+        status: 'success',
+        paidAt: now,
+        channel: evt.channel ?? null,
+        rawPayload: minimalPaymentPayload(evt.raw),
+      })
       .where(eq(schema.payments.id, payment.id));
 
     if (order.status === 'expired') {

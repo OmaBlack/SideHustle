@@ -11,6 +11,7 @@ import { loadConfig } from './config.js';
 import { DevNotifier } from './lib/notifier.js';
 import { drainOutbox, reconcilePayments, slaReminders } from './modules/notifications/service.js';
 import { expireOrders } from './modules/orders/service.js';
+import { runRetention } from './modules/privacy/service.js';
 import { retryPendingRefunds } from './modules/payments/service.js';
 
 const config = loadConfig();
@@ -37,6 +38,8 @@ const JOBS: Record<string, () => Promise<unknown>> = {
   'orders.expire': () => expireOrders(db),
   'outbox.drain': () => drainOutbox(db, notifier),
   'vendor.sla': () => slaReminders(db),
+  // FR-ADM-10 / NDPA s.24(1)(d): delete or archive data past its retention period, nightly.
+  'privacy.retention': () => runRetention(db),
   'payments.reconcile': () => reconcilePayments(db, payments),
   'refunds.process': () => retryPendingRefunds(db, payments),
 };
@@ -63,6 +66,7 @@ const every = {
   'outbox.drain': 5_000,
   'vendor.sla': 15 * 60_000,
   'payments.reconcile': 15 * 60_000,
+  'privacy.retention': 24 * 3_600_000,
   'refunds.process': 60_000,
 };
 for (const [name, ms] of Object.entries(every)) {

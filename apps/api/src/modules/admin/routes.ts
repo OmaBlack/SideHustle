@@ -312,6 +312,8 @@ export const adminRoutes: FastifyPluginAsyncZod = async (app) => {
     const [o] = await db.select().from(schema.orders).where(eq(schema.orders.ref, req.params.ref));
     if (!o) throw notFound('Order not found');
     const [view] = await orderViews(db, [o]);
+    // NDPA accountability: record every admin view of a buyer's personal data.
+    await audit(db, actor(req), 'order.view', 'order', o.id);
     const [buyer] = await db
       .select({ name: schema.users.name, email: schema.users.email, phone: schema.users.phone })
       .from(schema.users)

@@ -23,6 +23,10 @@ export const SignupInput = z.object({
     errorMap: () => ({ message: 'Please accept the terms and privacy notice' }),
   }),
   marketing: z.boolean().default(false),
+  /** NDPA s.31: the platform is for adult business owners; children's data needs parental consent we do not collect. */
+  ageConfirmed: z.literal(true, {
+    errorMap: () => ({ message: 'You must be 18 or older to open an account' }),
+  }),
 });
 export type SignupInput = z.infer<typeof SignupInput>;
 
@@ -269,11 +273,59 @@ export const HubThresholdInput = z.object({
   lowStockThreshold: z.number().int().min(0),
 });
 export const ConfigInput = z.object({ value: z.unknown() });
-export const RetentionInput = z.object({
-  dataType: z.string().trim().min(2).max(40),
-  retainDays: z.number().int().min(1),
-  action: z.enum(['archive', 'purge']),
+/**
+ * Data types the nightly retention job understands (FR-ADM-10, DR-06), with the
+ * shortest period an admin may set. Orders and payments keep at least 6 years
+ * [Assumption DR-06: tax and accounting records]; set the final values with legal advice.
+ */
+export const RETENTION_TYPES = {
+  sessions: { minDays: 1, action: 'purge', label: 'Ended login sessions' },
+  auth_codes: { minDays: 1, action: 'purge', label: 'Used or expired codes and email links' },
+  outbox: { minDays: 1, action: 'purge', label: 'Sent message queue' },
+  notifications: { minDays: 30, action: 'purge', label: 'Message log' },
+  checkout_quotes: { minDays: 1, action: 'purge', label: 'Checkout quotes not used for an order' },
+  idempotency_keys: { minDays: 1, action: 'purge', label: 'Duplicate-submit keys' },
+  payment_payloads: { minDays: 30, action: 'archive', label: 'Raw payment provider payloads' },
+  custom_requests: { minDays: 90, action: 'archive', label: 'Custom request text' },
+  orders: { minDays: 2190, action: 'archive', label: 'Delivery details on old orders' },
+} as const;
+export type RetentionType = keyof typeof RETENTION_TYPES;
+
+export const RetentionInput = z
+  .object({
+    dataType: z.enum(Object.keys(RETENTION_TYPES) as [RetentionType, ...RetentionType[]]),
+    retainDays: z.number().int().min(1),
+    action: z.enum(['archive', 'purge']),
+  })
+  .superRefine((r, ctx) => {
+    const t = RETENTION_TYPES[r.dataType];
+    if (r.retainDays < t.minDays) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['retainDays'],
+        message: `Keep this for at least ${t.minDays} days`,
+      });
+    }
+    if (r.action !== t.action) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['action'],
+        message: `This data type supports "${t.action}" only`,
+      });
+    }
+  });
+
+export const DeleteAccountInput = z.object({
+  password: z.string().min(1, 'Enter your password to confirm'),
 });
+
+export const ContactInput = z
+  .object({
+    email: z.string().trim().toLowerCase().email('Enter a valid email address').optional(),
+    phone: z.string().trim().min(1).optional(),
+    password: z.string().min(1, 'Enter your password to confirm'),
+  })
+  .refine((c) => c.email || c.phone, { message: 'Enter a new email or phone number' });
 export const RestrictionInput = z
   .object({
     categoryId: z.string().uuid().nullable().default(null),

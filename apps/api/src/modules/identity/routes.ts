@@ -68,6 +68,7 @@ export const identityRoutes: FastifyPluginAsyncZod = async (app) => {
         .insert(schema.consents)
         .values([
           { userId: u!.id, purpose: 'processing', policyVersion: POLICY_VERSION },
+          { userId: u!.id, purpose: 'age_18_plus', policyVersion: POLICY_VERSION },
           ...(b.marketing ? [{ userId: u!.id, purpose: 'marketing', policyVersion: POLICY_VERSION }] : []),
         ]);
       return u!;

@@ -16,6 +16,7 @@ export async function applySeed(db: Database, seed: Seed) {
     await tx.insert(s.restrictedItems).values(seed.restrictedItems).onConflictDoNothing();
     await tx.insert(s.commissionRules).values(seed.commissionRules).onConflictDoNothing();
     await tx.insert(s.payoutSettings).values(seed.payoutSettings).onConflictDoNothing();
+    await tx.insert(s.retentionPolicies).values(seed.retentionPolicies).onConflictDoNothing();
     await tx.insert(s.appConfig).values(seed.appConfig).onConflictDoNothing();
   });
 }
