@@ -29,8 +29,9 @@ export function Monogram({ name, color, size = 44, className }: MonogramProps) {
         width: size,
         height: size,
         fontSize: size * 0.38,
+        // Without a brand colour, use the accent pair so contrast holds in light and dark themes.
         background: color ?? 'var(--accent)',
-        color: '#fff',
+        color: color ? '#fff' : 'var(--on-accent)',
       }}
     >
       {initials(name)}
