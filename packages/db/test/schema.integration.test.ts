@@ -208,4 +208,36 @@ describe.skipIf(!hasDb)('schema v1 (ticket 0.4)', () => {
     );
     expect(row).toEqual({ on_hand: 80, available: 70 });
   });
+
+  describe('append-only enforcement for the connecting (owner) role', () => {
+    it('rejects updating or deleting audit_log rows', async () => {
+      await conn.db.insert(s.auditLog).values({ action: 'owner-test', entity: 'x', entityId: '2' });
+      await expect(conn.db.execute(sql`update audit_log set action = 'tampered'`)).rejects.toSatisfy((e) =>
+        cause(e).includes('append-only'),
+      );
+      await expect(conn.db.execute(sql`delete from audit_log`)).rejects.toSatisfy((e) =>
+        cause(e).includes('append-only'),
+      );
+    });
+
+    it.each(['audit_log', 'ledger_entries', 'hub_stock_movements'])(
+      'rejects TRUNCATE on %s',
+      async (table) => {
+        await expect(conn.db.execute(sql.raw(`truncate ${table}`))).rejects.toSatisfy((e) =>
+          cause(e).includes('append-only'),
+        );
+      },
+    );
+  });
+
+  it('grants tables created by later migrations to the app role', async () => {
+    await expect(
+      conn.db.transaction(async (tx) => {
+        await tx.execute(sql`create table zz_grant_probe (id int)`);
+        await tx.execute(sql`set local role sidehustle_app`);
+        await tx.execute(sql`insert into zz_grant_probe values (1)`);
+        throw new Error('rollback probe');
+      }),
+    ).rejects.toThrow('rollback probe');
+  });
 });
