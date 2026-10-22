@@ -63,6 +63,23 @@ describe('app without dependencies', () => {
     await app.close();
   });
 
+  it('reports a hung dependency as failed within the health timeout', async () => {
+    const hanging = {
+      db: { execute: () => new Promise(() => {}) },
+      redis: { ping: () => new Promise(() => {}) },
+    };
+    const app = await buildApp({
+      config: { ...config, HEALTH_TIMEOUT_MS: 50 },
+      ...(hanging as unknown as Pick<Deps, 'db' | 'redis'>),
+    });
+    const started = Date.now();
+    const res = await app.inject({ method: 'GET', url: '/v1/health' });
+    expect(res.statusCode).toBe(503);
+    expect(res.json().checks).toEqual({ database: 'fail', redis: 'fail' });
+    expect(Date.now() - started).toBeLessThan(1_000);
+    await app.close();
+  });
+
   it('returns RFC 7807 problems for unknown routes', async () => {
     const app = await buildApp({ config, ...(failing as unknown as Pick<Deps, 'db' | 'redis'>) });
     const res = await app.inject({ method: 'GET', url: '/v1/nope' });

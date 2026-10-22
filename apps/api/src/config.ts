@@ -14,6 +14,8 @@ const Env = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  /** Per-dependency cap for GET /v1/health, so an outage answers 503 instead of hanging. */
+  HEALTH_TIMEOUT_MS: z.coerce.number().int().positive().default(2000),
   APP_VERSION: z.string().default('dev'),
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
   /** Paystack test or live secret. Empty = the dev payment provider (never in production). */
