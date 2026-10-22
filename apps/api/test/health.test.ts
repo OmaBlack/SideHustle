@@ -13,7 +13,13 @@ describe.skipIf(!DATABASE_URL || !REDIS_URL)('GET /v1/health', () => {
   let conn: ReturnType<typeof createDb>;
   let redis: Redis;
   beforeAll(async () => {
-    const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL, REDIS_URL, APP_VERSION: '1.2.3' });
+    const config = loadConfig({
+      NODE_ENV: 'test',
+      DEV_TOOLS: 'true',
+      DATABASE_URL,
+      REDIS_URL,
+      APP_VERSION: '1.2.3',
+    });
     conn = createDb(config.DATABASE_URL, { max: 2 });
     redis = new Redis(config.REDIS_URL);
     app = await buildApp({ config, db: conn.db, redis });
@@ -39,7 +45,11 @@ describe.skipIf(!DATABASE_URL || !REDIS_URL)('GET /v1/health', () => {
 });
 
 describe('app without dependencies', () => {
-  const config = loadConfig({ NODE_ENV: 'test', DATABASE_URL: 'postgres://x@localhost/x' });
+  const config = loadConfig({
+    NODE_ENV: 'test',
+    DEV_TOOLS: 'true',
+    DATABASE_URL: 'postgres://x@localhost/x',
+  });
   const failing = {
     db: { execute: async () => Promise.reject(new Error('down')) },
     redis: { ping: async () => Promise.reject(new Error('down')) },
@@ -50,6 +60,23 @@ describe('app without dependencies', () => {
     const res = await app.inject({ method: 'GET', url: '/v1/health' });
     expect(res.statusCode).toBe(503);
     expect(res.json().checks).toEqual({ database: 'fail', redis: 'fail' });
+    await app.close();
+  });
+
+  it('reports a hung dependency as failed within the health timeout', async () => {
+    const hanging = {
+      db: { execute: () => new Promise(() => {}) },
+      redis: { ping: () => new Promise(() => {}) },
+    };
+    const app = await buildApp({
+      config: { ...config, HEALTH_TIMEOUT_MS: 50 },
+      ...(hanging as unknown as Pick<Deps, 'db' | 'redis'>),
+    });
+    const started = Date.now();
+    const res = await app.inject({ method: 'GET', url: '/v1/health' });
+    expect(res.statusCode).toBe(503);
+    expect(res.json().checks).toEqual({ database: 'fail', redis: 'fail' });
+    expect(Date.now() - started).toBeLessThan(1_000);
     await app.close();
   });
 

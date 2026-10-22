@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   type AnyPgColumn,
+  boolean,
   check,
   index,
   integer,
@@ -49,6 +50,9 @@ export const customRequests = pgTable('custom_requests', {
   quotedAmountKobo: kobo(),
   quoteExpiresAt: tstz(),
   vendorReply: text(),
+  /** Set when an admin removes the request for breaking content rules (FR-ADM-02). */
+  hiddenAt: tstz(),
+  hiddenReason: text(),
   ...timestamps,
 });
 
@@ -91,6 +95,9 @@ export const cartLines = pgTable(
     name: text(),
     /** Bundle items: [{ product_id, qty, options, note }] */
     items: jsonb(),
+    /** Unit price and availability the buyer last saw, so the cart can flag changes (FR-CART-05). */
+    seenUnitKobo: kobo(),
+    seenAvailable: boolean(),
     ...timestamps,
   },
   (t) => [
@@ -227,8 +234,10 @@ export const orderLines = pgTable(
     nameSnapshot: text().notNull(),
     unitPriceKobo: kobo().notNull(),
     qty: integer().notNull(),
-    /** This line's share of a bundle discount, split by largest remainder (rule 8). */
+    /** This line's share of a bundle discount or kit price gap, split by largest remainder (rule 8). */
     discountKobo: kobo().notNull().default(0),
+    /** Who absorbs discountKobo (plan section 8a): vendors for kit gaps by default, the platform for bundles. */
+    discountFundedBy: fundedBy(),
     optionsSnapshot: jsonb(),
     note: text(),
     ...timestamps,

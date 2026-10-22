@@ -36,7 +36,7 @@ export const fulfilmentStatus = pgEnum('fulfilment_status', [
   'dispatched',
   'delivered',
 ]);
-export const paymentProvider = pgEnum('payment_provider', ['paystack', 'flutterwave']);
+export const paymentProvider = pgEnum('payment_provider', ['paystack', 'flutterwave', 'dev']);
 export const paymentStatus = pgEnum('payment_status', ['pending', 'success', 'failed', 'abandoned']);
 export const refundStatus = pgEnum('refund_status', ['pending', 'processed', 'failed']);
 export const ledgerAccount = pgEnum('ledger_account', [

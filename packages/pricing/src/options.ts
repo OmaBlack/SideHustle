@@ -32,7 +32,7 @@ export function optionAddOn(
   let ticked = false;
   const parts: string[] = [];
   for (const o of opts) {
-    const v = sel[o.id];
+    const v = Object.hasOwn(sel, o.id) ? sel[o.id] : undefined;
     if (o.type === 'check') {
       if (v !== undefined && typeof v !== 'boolean') {
         throw new PricingError('INVALID_OPTION_VALUE', `Option "${o.id}" expects true or false`);

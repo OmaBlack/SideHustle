@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { optionAddOn } from './options.js';
 import { PricingError } from './errors.js';
-import { N, products } from '../test/helpers.js';
+import { N, product, products } from '../test/helpers.js';
 
 const tote = products.get('lux-tote')!;
 
@@ -29,5 +29,25 @@ describe('optionAddOn (BR-02)', () => {
     expect(() => optionAddOn(tote, { discount: true })).toThrow(/no option/);
     expect(() => optionAddOn(tote, { mono: 'yes' })).toThrow(/true or false/);
     expect(() => optionAddOn(products.get('shea')!, { colour: 'Black' })).toThrow(PricingError);
+  });
+
+  it('treats option ids that shadow Object.prototype members as ordinary ids', () => {
+    const p = product({
+      id: 'proto',
+      options: [
+        { type: 'check', id: 'constructor', label: 'Gift wrap', addKobo: N(200) },
+        {
+          type: 'select',
+          id: 'toString',
+          label: 'Size',
+          values: [
+            { value: 'S', addKobo: N(0) },
+            { value: 'L', addKobo: N(500) },
+          ],
+        },
+      ],
+    });
+    expect(optionAddOn(p).addKobo).toBe(0);
+    expect(optionAddOn(p, { constructor: true, toString: 'L' }).addKobo).toBe(N(700));
   });
 });

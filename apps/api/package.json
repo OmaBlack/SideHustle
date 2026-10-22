@@ -12,10 +12,14 @@
     "openapi": "tsx src/openapi.ts",
     "test": "vitest run",
     "lint": "eslint src test",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "db:seed:demo": "tsx --env-file-if-exists=../../.env src/scripts/seed-demo.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.1.3",
+    "@fastify/rate-limit": "^10.3.0",
     "@fastify/swagger": "^9.4.0",
+    "@node-rs/argon2": "^2.2.2",
     "@sidehustle/db": "workspace:*",
     "@sidehustle/pricing": "workspace:*",
     "@sidehustle/schemas": "workspace:*",
@@ -29,8 +33,8 @@
   "devDependencies": {
     "@sidehustle/config": "workspace:*",
     "@types/node": "^22.10.2",
+    "concurrently": "^9.1.0",
     "tsx": "^4.19.2",
-    "vitest": "^2.1.8",
-    "concurrently": "^9.1.0"
+    "vitest": "^2.1.8"
   }
 }

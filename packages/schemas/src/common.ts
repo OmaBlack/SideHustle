@@ -25,10 +25,10 @@ export type Problem = z.infer<typeof Problem>;
 /** E.164 Nigerian mobile number, e.g. +2348012345678. */
 export const NigerianPhone = z.string().regex(/^\+234[789][01]\d{8}$/, 'Enter a Nigerian mobile number');
 
-/** Normalises 08012345678, 2348012345678 or +234 801 234 5678 to E.164. Returns null if it cannot. */
+/** Normalises 08012345678, 8012345678 (after a fixed +234 prefix), 2348012345678 or +234 801 234 5678 to E.164. Returns null if it cannot. */
 export function toE164(input: string): string | null {
   const digits = input.replace(/[\s()-]/g, '');
-  const m = /^(?:\+?234|0)([789][01]\d{8})$/.exec(digits);
+  const m = /^(?:\+?234|0)?([789][01]\d{8})$/.exec(digits);
   return m ? `+234${m[1]}` : null;
 }
 

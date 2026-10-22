@@ -42,7 +42,7 @@ export const outbox = pgTable(
   ],
 );
 
-/** Append-only; the app role has no UPDATE/DELETE grant (migration 0002). */
+/** Append-only for every role (trigger, migration 0003); the app role also lacks UPDATE/DELETE grants (0002). */
 export const auditLog = pgTable(
   'audit_log',
   {

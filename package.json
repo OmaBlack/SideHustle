@@ -19,7 +19,8 @@
     "db:seed": "pnpm --filter @sidehustle/db db:seed",
     "db:reset": "pnpm --filter @sidehustle/db db:reset",
     "openapi": "pnpm --silent --filter @sidehustle/api openapi > apps/api/openapi.json",
-    "test:e2e": "pnpm --filter @sidehustle/web test:e2e"
+    "test:e2e": "pnpm --filter @sidehustle/web test:e2e",
+    "db:seed:demo": "pnpm --filter @sidehustle/api db:seed:demo"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

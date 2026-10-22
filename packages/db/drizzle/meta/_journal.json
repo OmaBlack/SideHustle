@@ -22,6 +22,20 @@
       "when": 1792481741186,
       "tag": "0002_ledger_and_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792663668411,
+      "tag": "0003_flows",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792671062093,
+      "tag": "0004_append_only_hardening",
+      "breakpoints": true
     }
   ]
 }
