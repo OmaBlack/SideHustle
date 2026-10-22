@@ -5,7 +5,7 @@ import {
   type PricingProduct,
   type ProductOption,
 } from '@sidehustle/pricing';
-import { and, asc, eq, inArray, isNull, or } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import type { Database } from './client.js';
 import { kitItems, kits, products, vendors, type StoredOption } from './schema/catalogue.js';
 
@@ -25,7 +25,8 @@ export function toPricingOption(o: StoredOption): ProductOption {
  * from an unverified vendor gets stockQty 0, so the kit is unavailable
  * (FR-KIT-05) and a direct line is rejected as OUT_OF_STOCK (TRD checkout),
  * instead of pricing throwing UNKNOWN_PRODUCT. Drop-ship stock comes from
- * products.stock_qty; hub stock will join hub_stock_levels once ticket 3.9 lands.
+ * products.stock_qty (order reservations decrement it); hub stock is
+ * `available` from hub_stock_levels, 0 when the hub has never received any.
  */
 export async function loadPricingCatalogue(db: Database): Promise<Catalogue> {
   const krows = await db
@@ -49,6 +50,11 @@ export async function loadPricingCatalogue(db: Database): Promise<Catalogue> {
         : isNull(products.deletedAt),
     );
 
+  const hubRows = await db.execute<{ product_id: string; available: number }>(
+    sql`select product_id, available from hub_stock_levels`,
+  );
+  const hubAvailable = new Map(Array.from(hubRows, (r) => [r.product_id, Number(r.available)]));
+
   const ps = new Map<string, PricingProduct>();
   for (const { p, vendorStatus, vendorDeletedAt } of prows) {
     const sellable = p.status === 'active' && !p.deletedAt && vendorStatus === 'verified' && !vendorDeletedAt;
@@ -61,7 +67,7 @@ export async function loadPricingCatalogue(db: Database): Promise<Catalogue> {
       rrpKobo: kobo(p.rrpKobo),
       moq: p.moq,
       options: p.options.map(toPricingOption),
-      stockQty: sellable ? p.stockQty : 0,
+      stockQty: !sellable ? 0 : p.fulfilmentMode === 'hub' ? (hubAvailable.get(p.id) ?? 0) : p.stockQty,
     });
   }
   const ks = new Map<string, PricingKit>(
